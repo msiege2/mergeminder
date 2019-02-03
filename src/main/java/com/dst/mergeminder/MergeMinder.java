@@ -55,9 +55,9 @@ public class MergeMinder {
 	}
 
 	/**
-	 * Main application.  This task runs every minute.
+	 * Main application.  This task runs every 5 minutes.
 	 */
-	@Scheduled(initialDelay = 6000, fixedDelay = 60 * 1000)
+	@Scheduled(initialDelay = 6000, fixedDelay = 60 * 5000)
 	public void mindMerges() {
 		logger.info("Running MergeMinder checks.");
 		if (!TimeSchedule.shouldAlertNow()) {

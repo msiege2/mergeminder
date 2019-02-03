@@ -52,7 +52,7 @@ public enum ReminderLength {
 	}
 
 	private static final String AUTHOR_REMINDER_PM = "Hey %F_NAME%.  I just wanted to let you know that your merge request %MRNAME% in [%FQPN%] is assigned"
-		+ " to you.  It has been assigned to you for around %HOURS%.  Please don't forget about it!";
+		+ " to you.  It has been assigned to you for around %HOURS% hours.  Please don't forget about it!";
 
 	private static final String INITIAL_REMINDER_PM = "Hey %F_NAME%!  I just wanted to let you know that you've been assigned a "
 		+ "merge request -- %MRNAME%.  It was created by %AUTHOR_NAME% in project [%FQPN%].  Please do your best to take a look at it when you can!";

@@ -38,6 +38,7 @@ public class SlackIntegration {
 		SlackSession session = SlackSessionFactory.createWebSocketSlackSession(slackToken);
 		session.connect();
 		this.slackSession = session;
+		logger.info("Slack connection created.  Notification channel is #{}.", slackNotificationChannel);
 	}
 
 	public void notifyMergeRequest(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {

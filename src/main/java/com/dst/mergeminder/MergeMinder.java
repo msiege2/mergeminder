@@ -21,6 +21,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
 import com.dst.mergeminder.dto.MinderProjectsModel;
+import com.dst.mergeminder.util.TimeSchedule;
 
 /**
  * MergeMinderBot!
@@ -56,9 +57,13 @@ public class MergeMinder {
 	/**
 	 * Main application.  This task runs every minute.
 	 */
-	@Scheduled(fixedDelay = 60 * 1000)
+	@Scheduled(initialDelay = 6000, fixedDelay = 60 * 1000)
 	public void mindMerges() {
 		logger.info("Running MergeMinder checks.");
+		if (!TimeSchedule.shouldAlertNow()) {
+			logger.info("Skipping checks during off hours.");
+			return;
+		}
 		List<MinderProjectsModel> projectList = mergeMinderDb.getMinderProjects();
 		for (MinderProjectsModel minderProject : projectList) {
 			try {

@@ -1,5 +1,7 @@
 package com.dst.mergeminder;
 
+import java.util.Collection;
+
 import javax.annotation.PostConstruct;
 
 import org.gitlab4j.api.models.MergeRequest;
@@ -46,7 +48,7 @@ public class SlackIntegration {
 	public void notifyMergeRequest(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
 		// Always notify the channel
 		notifyChannelOfMergeInformation(mrInfo);
-		if (userEmail.toLowerCase().contains("siegel") || (notifyUsers && reminderLength.shouldSendAlert())) {
+		if (notifyUsers && reminderLength.shouldSendAlert()) {
 			notifyUser(mrInfo, reminderLength, userEmail);
 		}
 	}
@@ -59,6 +61,9 @@ public class SlackIntegration {
 	 */
 	private void notifyUser(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
 		SlackUser user = slackSession.findUserByEmail(userEmail);
+		if (user == null) {
+			user = findUserTheHardWay(mrInfo.getAssignee());
+		}
 		if (user != null) {
 			String messageForUser = null;
 			if (!mrInfo.getAssignee().getId().equals(mrInfo.getAuthor().getId())) {
@@ -137,6 +142,32 @@ public class SlackIntegration {
 			sb.append("MR!").append(mr.getIid());
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Ugh.  Brute force match parts of the user's gitlab name to their slack name.
+	 * @param u
+	 * @return
+	 */
+	private SlackUser findUserTheHardWay(User u) {
+		Collection<SlackUser> slackUsers = slackSession.getUsers();
+		for (SlackUser slackUser : slackUsers) {
+			String[] namePieces = u.getName().split("\\s");
+			String slackUserRealName = slackUser.getRealName();
+			boolean matches = true;
+			for (String namePiece : namePieces) {
+				if (slackUserRealName == null || !slackUserRealName.toLowerCase().contains(namePiece.toLowerCase())) {
+					matches = false;
+					break;
+				}
+			}
+			if (matches) {
+				logger.info("I have 'fuzzy matched' Gitlab user @{} ({}) to Slack user \"{}\".", u.getUsername(), u.getName(), slackUserRealName);
+				return slackUser;
+			}
+		}
+		logger.warn("Could not figure out who the GitLab user @{} ({}) is.", u.getUsername(), u.getName());
+		return null;
 	}
 
 	/**

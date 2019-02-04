@@ -36,6 +36,8 @@ public class MergeMinder {
 	private static final Logger logger = LoggerFactory.getLogger(MergeMinder.class);
 
 	@Autowired
+	TimeSchedule timeSchedule;
+	@Autowired
 	MergeMinderDb mergeMinderDb;
 	@Autowired
 	SlackIntegration slackIntegration;
@@ -60,7 +62,7 @@ public class MergeMinder {
 	@Scheduled(cron = "0 0/5 * * * *")
 	public void mindMerges() {
 		logger.info("Running MergeMinder checks.");
-		if (!TimeSchedule.shouldAlertNow()) {
+		if (!timeSchedule.shouldAlertNow()) {
 			logger.info("Skipping checks during off hours.");
 			return;
 		}

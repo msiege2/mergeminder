@@ -21,9 +21,9 @@ public class TimeSchedule {
 	private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mma");
 
 	@Value("${mergeminder.beginAlertHour:9}")
-	Integer beginAlertHour;
+	int beginAlertHour;
 	@Value("${mergeminder.endAlertHour:18}")
-	Integer endAlertHour;
+	int endAlertHour;
 	@Value("${mergeminder.alertOnWeekends:false}")
 	boolean alertOnWeekends;
 
@@ -48,7 +48,8 @@ public class TimeSchedule {
 			logger.debug("It's the weekend.  No notifications.");
 			return false;
 		}
-		if (currentEasternTime.getHour() < beginAlertHour || currentEasternTime.getHour() > endAlertHour) {
+		if (currentEasternTime.getHour() < beginAlertHour || currentEasternTime.getHour() > endAlertHour
+			|| (currentEasternTime.getHour() == endAlertHour && currentEasternTime.getMinute() == 0)) {
 			logger.debug("It's too early or too late.  No notifications.");
 			return false;
 		}

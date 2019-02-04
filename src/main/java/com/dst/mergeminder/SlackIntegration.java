@@ -61,12 +61,16 @@ public class SlackIntegration {
 		SlackUser user = slackSession.findUserByEmail(userEmail);
 		if (user != null) {
 			String messageForUser = null;
-			if (!mrInfo.getAssignee().equals(mrInfo.getAuthor())) {
+			if (!mrInfo.getAssignee().getId().equals(mrInfo.getAuthor().getId())) {
 				// The assignee is not the author.  Send a regular note.
 				messageForUser = reminderLength.getSlackPrivateNotificationMessage(getFirstName(mrInfo.getAssignee()),
 					buildMRNameSection(mrInfo.getMr(), true),
 					mrInfo.getFullyQualifiedProjectName(),
 					mrInfo.getAuthor().getName());
+				logger.info("Notifying user {} for [{}]{} at reminder time {}.", userEmail,
+					mrInfo.getFullyQualifiedProjectName(),
+					buildMRNameSection(mrInfo.getMr()),
+					reminderLength);
 			} else {
 				if (reminderLength != ReminderLength.INITIAL_REMINDER) {
 					// The MR is assigned to the author.  Remind them.
@@ -74,12 +78,12 @@ public class SlackIntegration {
 						buildMRNameSection(mrInfo.getMr(), true),
 						mrInfo.getFullyQualifiedProjectName());
 				}
-			}
+				logger.info("Notifying user {} for [{}]{} with author assignment message at reminder time {}.", userEmail,
+					mrInfo.getFullyQualifiedProjectName(),
+					buildMRNameSection(mrInfo.getMr()),
+					reminderLength);
 
-			logger.info("Notifying user {} for [{}]{} at reminder time {}.", userEmail,
-				mrInfo.getFullyQualifiedProjectName(),
-				buildMRNameSection(mrInfo.getMr()),
-				reminderLength);
+			}
 			logger.debug("Notification message: {}", messageForUser);
 			if (messageForUser != null) {
 				slackSession.sendMessageToUser(user, messageForUser, null);

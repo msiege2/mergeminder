@@ -1,14 +1,25 @@
 package com.dst.mergeminder.rest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.dst.mergeminder.MergeMinder;
 
 @RestController
 public class MergeController {
 
-	@GetMapping("/greet/{name}")
-	public String greeting(@PathVariable String name) {
-		return "Hi!! " + name;
+	@Autowired
+	MergeMinder mergeMinder;
+
+	@GetMapping("/")
+	public String mind() {
+		new Thread() {
+
+			@Override public void run() {
+				mergeMinder.mindMerges();
+			}
+		}.run();
+		return "Ran minding.";
 	}
 }

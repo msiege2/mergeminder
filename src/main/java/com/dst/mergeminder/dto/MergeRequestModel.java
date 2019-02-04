@@ -17,6 +17,7 @@ public class MergeRequestModel {
 	private String assignee;
 	private String assigneeEmail;
 	private Long lastReminderSentAt;
+	private Integer lastAssignmentId;
 	private Date assignedAt;
 	private Date lastUpdated;
 
@@ -32,6 +33,7 @@ public class MergeRequestModel {
 			this.assignee = otherMrModel.getAssignee();
 			this.assigneeEmail = otherMrModel.getAssigneeEmail();
 			this.assignedAt = otherMrModel.getAssignedAt();
+			this.lastAssignmentId = otherMrModel.getLastAssignmentId();
 			this.lastUpdated = null;
 		}
 	}
@@ -75,13 +77,21 @@ public class MergeRequestModel {
 	public void setAssigneeEmail(String assigneeEmail) {
 		this.assigneeEmail = assigneeEmail;
 	}
-	
+
 	public Long getLastReminderSentAt() {
 		return lastReminderSentAt;
 	}
 
 	public void setLastReminderSentAt(Long lastReminderSentAt) {
 		this.lastReminderSentAt = lastReminderSentAt;
+	}
+
+	public Integer getLastAssignmentId() {
+		return lastAssignmentId;
+	}
+
+	public void setLastAssignmentId(Integer lastAssignmentId) {
+		this.lastAssignmentId = lastAssignmentId;
 	}
 
 	public Date getAssignedAt() {

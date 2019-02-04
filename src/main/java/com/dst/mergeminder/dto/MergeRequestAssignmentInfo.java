@@ -3,6 +3,7 @@ package com.dst.mergeminder.dto;
 import java.util.Date;
 
 import org.gitlab4j.api.models.MergeRequest;
+import org.gitlab4j.api.models.Note;
 import org.gitlab4j.api.models.User;
 
 public class MergeRequestAssignmentInfo {
@@ -10,15 +11,15 @@ public class MergeRequestAssignmentInfo {
 	private MergeRequest mr;
 	private User assignee;
 	private User author;
-	private Date assignedAt;
+	private Note lastAssignmentNote;
 	private String projectNamespace;
 	private String projectName;
 
-	public MergeRequestAssignmentInfo(MergeRequest mr, User assignee, User author, Date assignedAt, String projectNamespace, String projectName) {
+	public MergeRequestAssignmentInfo(MergeRequest mr, User assignee, User author, Note lastAssignmentNote, String projectNamespace, String projectName) {
 		this.mr = mr;
 		this.assignee = assignee;
 		this.author = author;
-		this.assignedAt = assignedAt;
+		this.lastAssignmentNote = lastAssignmentNote;
 		this.projectNamespace = projectNamespace;
 		this.projectName = projectName;
 	}
@@ -36,7 +37,11 @@ public class MergeRequestAssignmentInfo {
 	}
 
 	public Date getAssignedAt() {
-		return assignedAt;
+		return lastAssignmentNote == null ? getMr().getCreatedAt() : lastAssignmentNote.getCreatedAt();
+	}
+
+	public Integer getLastAssignmentId() {
+		return lastAssignmentNote == null ? -1 : lastAssignmentNote.getId();
 	}
 
 	public String getProjectNamespace() {

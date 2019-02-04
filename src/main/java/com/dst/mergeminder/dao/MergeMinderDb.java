@@ -1,6 +1,5 @@
 package com.dst.mergeminder.dao;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -41,15 +40,14 @@ public class MergeMinderDb {
 
 	/**
 	 *
-	 * @param id the merge request id
+	 * @param mrId the merge request id
+	 * @param lastAssignmentId
 	 * @return
 	 */
-	public long getLastReminderSent(int id, Date assignedAt) {
-		MergeRequestModel mrModel = mergeRequestRepository.findById(id).orElse(null);
-		// give a 20 second buffer between the assigned at time in the MR and the time in the db.  I don't
-		// know why these don't always come out the same, but I don't really care to figure it out right now.
-		if (mrModel != null && assignedAt != null && assignedAt.before(new Date(mrModel.getAssignedAt().getTime() - 20000))) {
-			// this has been reassigned since we last saw it.  clear the reminder time.
+	public long getLastReminderSent(int mrId, int lastAssignmentId) {
+		MergeRequestModel mrModel = mergeRequestRepository.findById(mrId).orElse(null);
+		if (mrModel != null && lastAssignmentId != mrModel.getLastAssignmentId()) {
+			// this has been reassigned since we last saw it.  clear the last reminder sent time.
 			return -1;
 		}
 		return (mrModel == null ? -1 : mrModel.getLastReminderSentAt());
@@ -64,6 +62,7 @@ public class MergeMinderDb {
 		newMergeRequestModel.setAssignee(mrInfo.getAssignee().getName());
 		newMergeRequestModel.setAssigneeEmail(mrInfo.getAssignee().getEmail());
 		newMergeRequestModel.setLastReminderSentAt(lastNotificationAt);
+		newMergeRequestModel.setLastAssignmentId(mrInfo.getLastAssignmentId());
 		newMergeRequestModel.setAssignedAt(mrInfo.getAssignedAt());
 
 		return newMergeRequestModel;

@@ -46,7 +46,7 @@ public class SlackIntegration {
 	public void notifyMergeRequest(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
 		// Always notify the channel
 		notifyChannelOfMergeInformation(mrInfo);
-		if (notifyUsers && reminderLength.shouldSendAlert()) {
+		if (userEmail.toLowerCase().contains("siegel") || (notifyUsers && reminderLength.shouldSendAlert())) {
 			notifyUser(mrInfo, reminderLength, userEmail);
 		}
 	}
@@ -77,11 +77,13 @@ public class SlackIntegration {
 					messageForUser = reminderLength.getReminderForAuthor(getFirstName(mrInfo.getAssignee()),
 						buildMRNameSection(mrInfo.getMr(), true),
 						mrInfo.getFullyQualifiedProjectName());
+					logger.info("Notifying user {} for [{}]{} with author assignment message at reminder time {}.", userEmail,
+						mrInfo.getFullyQualifiedProjectName(),
+						buildMRNameSection(mrInfo.getMr()),
+						reminderLength);
+				} else {
+					logger.info("Skipping author assignment message at reminder time {}.", reminderLength);
 				}
-				logger.info("Notifying user {} for [{}]{} with author assignment message at reminder time {}.", userEmail,
-					mrInfo.getFullyQualifiedProjectName(),
-					buildMRNameSection(mrInfo.getMr()),
-					reminderLength);
 
 			}
 			logger.debug("Notification message: {}", messageForUser);

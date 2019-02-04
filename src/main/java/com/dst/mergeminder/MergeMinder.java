@@ -82,7 +82,7 @@ public class MergeMinder {
 							mrInfo.getMr().getIid(), mrInfo.getAssignee().getUsername(),
 							mrInfo.getAssignee().getName(), hoursSinceLastAssignment);
 					ReminderLength reminderLength = ReminderLength.getLastReminderPeriod(hoursSinceLastAssignment);
-					long lastReminderAt = mergeMinderDb.getLastReminderSent(mrInfo.getMr().getId(), mrInfo.getAssignedAt());
+					long lastReminderAt = mergeMinderDb.getLastReminderSent(mrInfo.getMr().getId(), mrInfo.getLastAssignmentId());
 					if (lastReminderAt >= reminderLength.getHours()) {
 						logger.info("[{}/{}] MR!{}: Already sent the most current reminder ({}).", minderProject.getNamespace(), minderProject.getProject(),
 							mrInfo.getMr().getIid(), reminderLength);

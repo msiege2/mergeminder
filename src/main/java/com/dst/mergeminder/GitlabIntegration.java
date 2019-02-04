@@ -2,7 +2,6 @@ package com.dst.mergeminder;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -69,11 +68,7 @@ public class GitlabIntegration {
 			log.debug("MR!{}: {}", mrId, title);
 			// Assignment events are in "notes"
 			List<Note> notes = gitLabApi.getNotesApi().getMergeRequestNotes(project.getId(), mr.getIid(), Constants.SortOrder.DESC, Note.OrderBy.CREATED_AT);
-			Date lastAssignment = getLastAssignment(notes);
-			if (lastAssignment == null) {
-				// If there were no assignments, assume it was assigned at creation.  This may not be needed.
-				lastAssignment = mr.getCreatedAt();
-			}
+			Note lastAssignment = getLastAssignment(notes);
 			if (mr.getAssignee() == null) {
 				log.info("[{}/{}] MR!{} is not assigned.  Nothing to mind.", namespace, projectName, mrId);
 			} else {
@@ -91,14 +86,14 @@ public class GitlabIntegration {
 	 * @param notes List of {@link Note}.  Assumes these are in descending order of create date.
 	 * @return Date at which the most recent assignment took place, or null if none was found.
 	 */
-	private Date getLastAssignment(List<Note> notes) {
+	private Note getLastAssignment(List<Note> notes) {
 		if (CollectionUtils.isEmpty(notes)) {
 			return null;
 		}
 		for (Note note : notes) {
 			if (note.getBody().toLowerCase().startsWith("assigned to")) {
 				// this is an assignment.  Since the notes are ordered by create date desc, this is the most recent assignment.
-				return note.getCreatedAt();
+				return note;
 			}
 			log.debug("Note: {}, at {}", note.getBody(), note.getCreatedAt());
 		}

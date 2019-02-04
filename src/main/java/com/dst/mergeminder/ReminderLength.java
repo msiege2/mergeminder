@@ -61,22 +61,22 @@ public enum ReminderLength {
 		+ " has been sitting there for a couple of hours.  Please do your best to take a look at it when you can.";
 
 	private static final String FOUR_HOURS_PM = "Hey there, %F_NAME%!  I see that merge request (%MRNAME%) in project [%FQPN%]"
-		+ " has been assigned to your for four hours now.  Help %AUTHOR_NAME% out and take a look when you have a chance.";
+		+ " has been assigned to you for four hours now.  Help %AUTHOR_NAME% out and take a look when you have a chance.";
 
 	private static final String SIX_HOURS_PM = "Hey there, %F_NAME%!  I see that merge request (%MRNAME%) in project [%FQPN%]"
-		+ " has been assigned to your for six hours now.  Help %AUTHOR_NAME% out and take a look when you have a chance.";
+		+ " has been assigned to you for six hours now.  Help %AUTHOR_NAME% out and take a look when you have a chance.";
 
 	private static final String EIGHT_HOURS_PM = "%F_NAME%, %F_NAME%, %F_NAME%.  I see that merge request (%MRNAME%) in project [%FQPN%]"
-		+ " has been assigned to your for eight hours now.  Help %AUTHOR_NAME% out and review it as soon as you can.";
+		+ " has been assigned to you for eight hours now.  Help %AUTHOR_NAME% out and review it as soon as you can.";
 
 	private static final String TWELVE_HOURS_PM = "%F_NAME%, I see that merge request (%MRNAME%) in project [%FQPN%]"
-		+ " has been assigned to your for over twelve hours.  %AUTHOR_NAME% probably wants to get this thing closed.  Please take a look ASAP.  Thanks.";
+		+ " has been assigned to you for over twelve hours.  %AUTHOR_NAME% probably wants to get this thing closed.  Please take a look ASAP.  Thanks.";
 
 	private static final String ONE_DAY_PM = "%F_NAME%, I see %MRNAME% in project [%FQPN%]"
-		+ " has been assigned to your for over a day!  They don't call me MergeMinder for nothing!  Let's get this closed.  Please take a look ASAP.  Thank you.";
+		+ " has been assigned to you for over a day!  They don't call me MergeMinder for nothing!  Let's get this closed.  Please take a look ASAP.  Thank you.";
 
 	private static final String TWO_DAYS_PM = "Come on, %F_NAME%!  I see that %MRNAME% in project [%FQPN%]"
-		+ " has been assigned to your for over two days.  Please take a look at this and resolve it ASAP.  Thanks.";
+		+ " has been assigned to you for over two days.  Please take a look at this and resolve it ASAP.  Thanks.";
 
 	public String getSlackPrivateNotificationMessage(String assigneeFirstName, String mrName, String fullyQualifiedProjectName, String authorName) {
 		switch (this) {

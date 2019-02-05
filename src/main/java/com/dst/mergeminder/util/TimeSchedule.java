@@ -47,7 +47,7 @@ public class TimeSchedule {
 			return false;
 		}
 		if (currentEasternTime.getHour() < beginAlertHour || currentEasternTime.getHour() > endAlertHour
-			|| (currentEasternTime.getHour() == endAlertHour && currentEasternTime.getMinute() == 0)) {
+			|| (currentEasternTime.getHour() == endAlertHour && currentEasternTime.getMinute() != 0)) {
 			logger.debug("It's too early or too late.  No notifications.");
 			return false;
 		}

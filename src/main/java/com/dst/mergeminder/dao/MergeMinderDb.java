@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
 import com.dst.mergeminder.dto.MergeRequestModel;
 import com.dst.mergeminder.dto.MinderProjectsModel;
+import com.dst.mergeminder.dto.UserMappingModel;
 
 @Configuration
 public class MergeMinderDb {
@@ -22,6 +23,8 @@ public class MergeMinderDb {
 	MinderProjectsRepository minderProjectsRepository;
 	@Autowired
 	MergeRequestRepository mergeRequestRepository;
+	@Autowired
+	UserMappingRepository userMappingRepository;
 
 	public void recordMergeRequest(MergeRequestAssignmentInfo mrInfo, long lastNotificationAt) {
 		MergeRequestModel mrModel = mergeRequestRepository.findById(mrInfo.getMr().getId()).orElse(null);
@@ -36,6 +39,16 @@ public class MergeMinderDb {
 
 	public MergeRequestModel getMergeRequestModel(int id) {
 		return mergeRequestRepository.findById(id).orElse(null);
+	}
+
+	public void saveUserMapping(UserMappingModel mapping) {
+		if (mapping != null) {
+			userMappingRepository.save(mapping);
+		}
+	}
+
+	public UserMappingModel getUserMapping(String gitlabUsername) {
+		return userMappingRepository.findByGitlabUsername(gitlabUsername);
 	}
 
 	/**

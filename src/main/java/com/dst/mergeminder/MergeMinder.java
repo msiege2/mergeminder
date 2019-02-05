@@ -44,6 +44,9 @@ public class MergeMinder {
 	@Autowired
 	GitlabIntegration gitlabIntegration;
 
+	@Value("${mergeminder.schedule.bypass:false}")
+	private boolean bypassSchedule;
+
 	@Value("${mergeminder.emailDomain}")
 	private String emailDomain;
 
@@ -62,7 +65,8 @@ public class MergeMinder {
 	@Scheduled(cron = "0 0/5 * * * *")
 	public void mindMerges() {
 		logger.info("Running MergeMinder checks.");
-		if (!timeSchedule.shouldAlertNow()) {
+		logger.info("Current Eastern Time: {}", timeSchedule.currentEasternTime());
+		if (!bypassSchedule && !timeSchedule.shouldAlertNow()) {
 			logger.info("Skipping checks during off hours.");
 			return;
 		}

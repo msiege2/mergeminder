@@ -8,10 +8,13 @@ import org.gitlab4j.api.models.MergeRequest;
 import org.gitlab4j.api.models.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
+import com.dst.mergeminder.dto.UserMappingModel;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
@@ -21,6 +24,9 @@ import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
 public class SlackIntegration {
 
 	private static final Logger logger = LoggerFactory.getLogger(SlackIntegration.class);
+
+	@Autowired
+	MergeMinderDb mergeMinderDb;
 
 	@Value("${slack.botToken}")
 	private String slackToken;
@@ -60,10 +66,22 @@ public class SlackIntegration {
 	 * @param userEmail
 	 */
 	private void notifyUser(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
-		SlackUser user = slackSession.findUserByEmail(userEmail);
+		// first check the mapping table
+		UserMappingModel userMapping = mergeMinderDb.getUserMapping(mrInfo.getAssignee().getUsername());
+		SlackUser user = findUserFromPredefinedMapping(userMapping);
+		// then try email lookup
 		if (user == null) {
+			user = slackSession.findUserByEmail(userEmail);
+		}
+		// at this point, we are either fuzzy matching, or not matching at all.  either way, record this in the mapping table for resolution later.
+		if (user == null) {
+			if (userMapping == null) {
+				recordUserMapping(mrInfo.getAssignee());
+			}
+			// now try a fuzzy match
 			user = findUserTheHardWay(mrInfo.getAssignee());
 		}
+		// if we found the user, notify.  if not, just give up
 		if (user != null) {
 			String messageForUser = null;
 			if (!mrInfo.getAssignee().getId().equals(mrInfo.getAuthor().getId())) {
@@ -98,6 +116,27 @@ public class SlackIntegration {
 		} else {
 			logger.warn("Could not send user notification because user with email {} couldn't be located.", userEmail);
 		}
+	}
+
+	private void recordUserMapping(User user) {
+		logger.info("Recording user in UserMapping lookup table.");
+		UserMappingModel userMapping = new UserMappingModel(user.getUsername());
+		userMapping.setGitlabName(user.getName());
+		mergeMinderDb.saveUserMapping(userMapping);
+	}
+
+	private SlackUser findUserFromPredefinedMapping(UserMappingModel userMapping) {
+		if (userMapping == null) {
+			return null;
+		}
+		SlackUser slackUser = null;
+		if (userMapping.getSlackUID() != null) {
+			slackUser = slackSession.findUserById(userMapping.getSlackUID());
+		}
+		if (slackUser == null && userMapping.getSlackEmail() != null) {
+			slackUser = slackSession.findUserByEmail(userMapping.getSlackEmail());
+		}
+		return slackUser;
 	}
 
 	/**

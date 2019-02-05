@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class TimeSchedule {
 
+	private static final ZoneId EASTERN_ZONE = ZoneId.of("America/New_York");
 	private static final Logger logger = LoggerFactory.getLogger(TimeSchedule.class);
 
 	private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mma");
@@ -33,16 +34,13 @@ public class TimeSchedule {
 
 	@PostConstruct
 	public void init() {
-		ZoneId zoneId = ZoneId.of("America/New_York");
-		ZonedDateTime currentEasternTime = ZonedDateTime.ofInstant(Instant.now(), zoneId);
+		ZonedDateTime currentEasternTime = ZonedDateTime.ofInstant(Instant.now(), EASTERN_ZONE);
 		logger.info("TimeSchedule initialization complete.  Begin alerting at {}:00, stop alerting at {}:00.  DO {} alert on weekends. Current Eastern time is: {}",
 			beginAlertHour, endAlertHour, alertOnWeekends ? "" : "NOT", dateFormat.format(currentEasternTime));
 	}
 
 	public boolean shouldAlertNow() {
-
-		ZoneId zoneId = ZoneId.of("America/New_York");
-		ZonedDateTime currentEasternTime = ZonedDateTime.ofInstant(Instant.now(), zoneId);
+		ZonedDateTime currentEasternTime = ZonedDateTime.ofInstant(Instant.now(), EASTERN_ZONE);
 		logger.debug("Current Eastern time is: {}", dateFormat.format(currentEasternTime));
 		if (alertOnWeekends && (currentEasternTime.getDayOfWeek() == DayOfWeek.SATURDAY || currentEasternTime.getDayOfWeek() == DayOfWeek.SUNDAY)) {
 			logger.debug("It's the weekend.  No notifications.");
@@ -55,6 +53,10 @@ public class TimeSchedule {
 		}
 
 		return true;
+	}
+
+	public String currentEasternTime() {
+		return dateFormat.format(ZonedDateTime.ofInstant(Instant.now(), EASTERN_ZONE));
 	}
 
 }

@@ -37,8 +37,16 @@ public class MergeMinderDb {
 		return StreamSupport.stream(minderProjectsRepository.findAll().spliterator(), false).collect(Collectors.toList());
 	}
 
+	public List<MergeRequestModel> getAllMergeRequestModels() {
+		return StreamSupport.stream(mergeRequestRepository.findAll().spliterator(), false).collect(Collectors.toList());
+	}
+
 	public MergeRequestModel getMergeRequestModel(int id) {
 		return mergeRequestRepository.findById(id).orElse(null);
+	}
+
+	public void removeMergeRequestModel(MergeRequestModel model) {
+		mergeRequestRepository.delete(model);
 	}
 
 	public void saveUserMapping(UserMappingModel mapping) {

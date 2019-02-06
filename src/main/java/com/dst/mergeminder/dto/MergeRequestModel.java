@@ -46,6 +46,10 @@ public class MergeRequestModel {
 		this.id = id;
 	}
 
+	/**
+	 * This is the fully qualified project name.  ie: "frontend/ui-projeckt-x"
+	 * @return
+	 */
 	public String getProject() {
 		return project;
 	}

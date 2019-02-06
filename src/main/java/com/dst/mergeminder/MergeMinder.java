@@ -20,6 +20,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
+import com.dst.mergeminder.dto.MergeRequestModel;
 import com.dst.mergeminder.dto.MinderProjectsModel;
 import com.dst.mergeminder.util.TimeSchedule;
 
@@ -98,6 +99,27 @@ public class MergeMinder {
 
 			} catch (GitLabApiException e) {
 				logger.error("Problem with GitLab integration.", e);
+			}
+		}
+	}
+
+	/**
+	 * Purge Process.  This removes stale MRs.
+	 */
+	@Scheduled(cron = "0 0 * * * *")
+	public void mergePurge() {
+		if (!bypassSchedule && !timeSchedule.shouldPurgeNow()) {
+			logger.info("Running MergePurge.");
+			List<MergeRequestModel> merges = mergeMinderDb.getAllMergeRequestModels();
+			for (MergeRequestModel merge : merges) {
+				try {
+					if (merge.getLastUpdated().toInstant().isBefore(Instant.now().minus(2, ChronoUnit.DAYS)) &&
+						gitlabIntegration.isMergeRequestMergedOrClosed(merge.getProject(), merge.getMrId())) {
+						mergeMinderDb.removeMergeRequestModel(merge);
+					}
+				} catch (GitLabApiException e) {
+					logger.error("Problem with GitLab integration.", e);
+				}
 			}
 		}
 	}

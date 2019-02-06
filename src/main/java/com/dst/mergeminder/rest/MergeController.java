@@ -12,7 +12,7 @@ public class MergeController {
 	@Autowired
 	MergeMinder mergeMinder;
 
-	@GetMapping("/")
+	@GetMapping("/mind")
 	public String mind() {
 		new Thread() {
 
@@ -22,4 +22,5 @@ public class MergeController {
 		}.run();
 		return "Ran minding.";
 	}
+
 }

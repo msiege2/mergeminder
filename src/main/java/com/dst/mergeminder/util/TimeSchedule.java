@@ -55,6 +55,13 @@ public class TimeSchedule {
 		return true;
 	}
 
+	public boolean shouldPurgeNow() {
+		ZonedDateTime currentEasternTime = ZonedDateTime.ofInstant(Instant.now(), EASTERN_ZONE);
+		logger.debug("Current Eastern time is: {}", dateFormat.format(currentEasternTime));
+		// Only purge at midnight
+		return (currentEasternTime.getHour() == 0);
+	}
+
 	public String currentEasternTime() {
 		return dateFormat.format(ZonedDateTime.ofInstant(Instant.now(), EASTERN_ZONE));
 	}

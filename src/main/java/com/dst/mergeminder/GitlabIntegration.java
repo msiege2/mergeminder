@@ -81,6 +81,18 @@ public class GitlabIntegration {
 		return assignmentInfoList;
 	}
 
+	public boolean isMergeRequestMergedOrClosed(String fullyQualifiedProjectName, Integer mrId) throws GitLabApiException {
+		if (fullyQualifiedProjectName == null || mrId == null) {
+			return false;
+		}
+		MergeRequest mr = gitLabApi.getMergeRequestApi().getMergeRequest(fullyQualifiedProjectName, mrId);
+		if (Constants.MergeRequestState.CLOSED.toString().equals(mr.getState()) ||
+			Constants.MergeRequestState.MERGED.toString().equals(mr.getState())) {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Parse all the notes for the MR and return the most recent assignment.
 	 * @param notes List of {@link Note}.  Assumes these are in descending order of create date.

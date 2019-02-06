@@ -49,14 +49,22 @@ public class MergeMinderDb {
 		mergeRequestRepository.delete(model);
 	}
 
+	public List<UserMappingModel> getAllUserMappings() {
+		return StreamSupport.stream(userMappingRepository.findAll().spliterator(), false).collect(Collectors.toList());
+	}
+
+	public UserMappingModel getUserMappingById(Integer id) {
+		return userMappingRepository.findById(id).orElse(null);
+	}
+
+	public UserMappingModel getUserMappingByGitlabUsername(String gitlabUsername) {
+		return userMappingRepository.findByGitlabUsername(gitlabUsername);
+	}
+
 	public void saveUserMapping(UserMappingModel mapping) {
 		if (mapping != null) {
 			userMappingRepository.save(mapping);
 		}
-	}
-
-	public UserMappingModel getUserMapping(String gitlabUsername) {
-		return userMappingRepository.findByGitlabUsername(gitlabUsername);
 	}
 
 	/**

@@ -7,7 +7,10 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+
 @Entity(name = "MergeRequests")
+@JsonRootName(value = "MindedMergeRequest")
 public class MergeRequestModel {
 
 	@Id

@@ -69,7 +69,7 @@ public class SlackIntegration {
 	 */
 	private void notifyUser(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
 		// first check the mapping table
-		UserMappingModel userMapping = mergeMinderDb.getUserMapping(mrInfo.getAssignee().getUsername());
+		UserMappingModel userMapping = mergeMinderDb.getUserMappingByGitlabUsername(mrInfo.getAssignee().getUsername());
 		SlackUser user = findUserFromPredefinedMapping(userMapping);
 		// then try email lookup
 		if (user == null) {

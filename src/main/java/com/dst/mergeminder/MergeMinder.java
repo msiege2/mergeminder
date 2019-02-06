@@ -110,17 +110,20 @@ public class MergeMinder {
 	public void mergePurge() {
 		if (!bypassSchedule && !timeSchedule.shouldPurgeNow()) {
 			logger.info("Running MergePurge.");
+			int purgeCount = 0;
 			List<MergeRequestModel> merges = mergeMinderDb.getAllMergeRequestModels();
 			for (MergeRequestModel merge : merges) {
 				try {
 					if (merge.getLastUpdated().toInstant().isBefore(Instant.now().minus(2, ChronoUnit.DAYS)) &&
 						gitlabIntegration.isMergeRequestMergedOrClosed(merge.getProject(), merge.getMrId())) {
 						mergeMinderDb.removeMergeRequestModel(merge);
+						purgeCount++;
 					}
 				} catch (GitLabApiException e) {
 					logger.error("Problem with GitLab integration.", e);
 				}
 			}
+			logger.info("MergePurge complete.  Removed {} entries.", purgeCount);
 		}
 	}
 

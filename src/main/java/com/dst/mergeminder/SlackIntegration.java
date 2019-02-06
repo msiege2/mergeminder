@@ -31,9 +31,9 @@ public class SlackIntegration {
 	@Value("${slack.botToken}")
 	private String slackToken;
 
-	@Value("${slack.notificationChannel}")
+	@Value("${slack.notificationChannel:#{null}}")
 	private String slackNotificationChannel;
-	@Value("${slack.notifyUsers}")
+	@Value("${slack.notifyUsers:false}")
 	private boolean notifyUsers;
 	private SlackSession slackSession;
 
@@ -46,14 +46,16 @@ public class SlackIntegration {
 		SlackSession session = SlackSessionFactory.createWebSocketSlackSession(slackToken);
 		session.connect();
 		this.slackSession = session;
-		logger.info("Slack connection created.  Notification channel is #{}.  User notification is {}",
-			slackNotificationChannel,
+		logger.info("Slack connection created.  Notification channel is {}.  User notification is {}",
+			slackNotificationChannel != null ? "ENABLED on channel #" + slackNotificationChannel : "DISABLED",
 			notifyUsers ? "ENABLED" : "DISABLED");
 	}
 
 	public void notifyMergeRequest(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
 		// Always notify the channel
-		notifyChannelOfMergeInformation(mrInfo);
+		if (slackNotificationChannel != null) {
+			notifyChannelOfMergeInformation(mrInfo);
+		}
 		if (notifyUsers && reminderLength.shouldSendAlert()) {
 			notifyUser(mrInfo, reminderLength, userEmail);
 		}
@@ -154,7 +156,11 @@ public class SlackIntegration {
 			.append(" hours.");
 
 		SlackChannel channel = slackSession.findChannelByName(slackNotificationChannel);
-		slackSession.sendMessage(channel, sb.toString());
+		if (channel != null) {
+			slackSession.sendMessage(channel, sb.toString());
+		} else {
+			logger.warn("Could not send notifications to slack channel #{}", slackNotificationChannel);
+		}
 	}
 
 	/**

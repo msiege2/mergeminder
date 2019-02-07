@@ -20,6 +20,7 @@ import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
 import com.dst.mergeminder.dto.UserMappingModel;
 import com.ullink.slack.simpleslackapi.SlackChannel;
+import com.ullink.slack.simpleslackapi.SlackPreparedMessage;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
 import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
@@ -115,7 +116,7 @@ public class SlackIntegration {
 			if (!mrInfo.getAssignee().getId().equals(mrInfo.getAuthor().getId())) {
 				// The assignee is not the author.  Send a regular note.
 				messageForUser = reminderLength.getSlackPrivateNotificationMessage(getFirstName(mrInfo.getAssignee()),
-					buildMRNameSection(mrInfo.getMr(), true),
+					buildMRNameSection(mrInfo.getMr()),
 					buildMRTitleSection(mrInfo.getMr()),
 					mrInfo.getFullyQualifiedProjectName(),
 					mrInfo.getAuthor().getName());
@@ -127,7 +128,7 @@ public class SlackIntegration {
 				if (reminderLength != ReminderLength.INITIAL_REMINDER) {
 					// The MR is assigned to the author.  Remind them.
 					messageForUser = reminderLength.getReminderForAuthor(getFirstName(mrInfo.getAssignee()),
-						buildMRNameSection(mrInfo.getMr(), true),
+						buildMRNameSection(mrInfo.getMr()),
 						buildMRTitleSection(mrInfo.getMr()),
 						mrInfo.getFullyQualifiedProjectName());
 					logger.info("Notifying user {} for [{}]{} with author assignment message at reminder time {}.", mrInfo.getAssignee().getName(),
@@ -141,7 +142,11 @@ public class SlackIntegration {
 			}
 			logger.debug("Notification message: {}", messageForUser);
 			if (messageForUser != null) {
-				slackSession.sendMessageToUser(user, messageForUser, null);
+				SlackPreparedMessage slackPreparedMessage = new SlackPreparedMessage.Builder()
+					.withMessage(messageForUser)
+					.withUnfurl(false)
+					.build();
+				slackSession.sendMessageToUser(user, slackPreparedMessage);
 			}
 		} else {
 			logger.warn("Could not send user notification because user with email {} couldn't be located.", userEmail);
@@ -192,9 +197,13 @@ public class SlackIntegration {
 			.append(MergeMinder.getHoursSinceAssignment(mrInfo.getAssignedAt()))
 			.append(" hours.");
 
+		SlackPreparedMessage preparedMessage = new SlackPreparedMessage.Builder()
+			.withMessage(sb.toString())
+			.withUnfurl(false)
+			.build();
 		SlackChannel channel = slackSession.findChannelByName(slackNotificationChannel);
 		if (channel != null) {
-			slackSession.sendMessage(channel, sb.toString());
+			slackSession.sendMessage(channel, preparedMessage);
 		} else {
 			logger.warn("Could not send notifications to slack channel #{}", slackNotificationChannel);
 		}
@@ -215,9 +224,9 @@ public class SlackIntegration {
 	 * @param includeLink
 	 * @return
 	 */
-	private String buildMRNameSection(MergeRequest mr, boolean includeLink) {
+	private String buildMRNameSection(MergeRequest mr, boolean suppressLink) {
 		StringBuilder sb = new StringBuilder();
-		if (includeLink) {
+		if (!suppressLink) {
 			sb.append("<").append(mr.getWebUrl()).append("|")
 				.append("MR!").append(mr.getIid()).append(">");
 		} else {

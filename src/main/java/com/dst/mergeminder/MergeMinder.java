@@ -48,8 +48,8 @@ public class MergeMinder {
 	@Value("${mergeminder.schedule.bypass:false}")
 	private boolean bypassSchedule;
 
-	@Value("${mergeminder.emailDomain}")
-	private String emailDomain;
+	@Value("${mergeminder.emailDomains}")
+	private String emailDomains;
 
 	public MergeMinder() {
 		// empty constructor
@@ -89,7 +89,7 @@ public class MergeMinder {
 					ReminderLength reminderLength = ReminderLength.getLastReminderPeriod(hoursSinceLastAssignment);
 					long lastReminderAt = mergeMinderDb.getLastReminderSent(mrInfo.getMr().getId(), mrInfo.getLastAssignmentId());
 					if (lastReminderAt >= reminderLength.getHours()) {
-						logger.info("[{}/{}] MR!{}: Already sent the most current reminder ({}).", minderProject.getNamespace(), minderProject.getProject(),
+						logger.debug("[{}/{}] MR!{}: Already sent the most current reminder ({}).", minderProject.getNamespace(), minderProject.getProject(),
 							mrInfo.getMr().getIid(), reminderLength);
 					} else {
 						slackIntegration.notifyMergeRequest(mrInfo, reminderLength, getEmail(mrInfo.getAssignee()));
@@ -158,12 +158,17 @@ public class MergeMinder {
 		if (user == null) {
 			return null;
 		}
-		// TODO: Try lookup table
+		if (emailDomains != null) {
+			// email domains should be comma separated
+			String[] splitEmailDomains = emailDomains.split(",");
+			for (String emailDomain : splitEmailDomains) {
+				if (user.getEmail() != null && user.getEmail().endsWith(emailDomain)) {
+					return user.getEmail();
+				}
 
-		if (user.getEmail() != null && user.getEmail().endsWith(emailDomain)) {
-			return user.getEmail();
+			}
 		}
-		return user.getName().toLowerCase().replaceAll("\\s", ".") + "@" + emailDomain;
+		return null;
 	}
 
 }

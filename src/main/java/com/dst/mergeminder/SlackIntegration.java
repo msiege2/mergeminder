@@ -1,6 +1,9 @@
 package com.dst.mergeminder;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -35,6 +38,10 @@ public class SlackIntegration {
 	private String slackNotificationChannel;
 	@Value("${slack.notifyUsers:false}")
 	private boolean notifyUsers;
+
+	@Value("${mergeminder.emailDomains}")
+	private String emailDomains;
+
 	private SlackSession slackSession;
 
 	public SlackSession getSlackSession() {
@@ -51,6 +58,12 @@ public class SlackIntegration {
 			notifyUsers ? "ENABLED" : "DISABLED");
 	}
 
+	/**
+	 * Create notification(s) for this MR.
+	 * @param mrInfo
+	 * @param reminderLength
+	 * @param userEmail
+	 */
 	public void notifyMergeRequest(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
 		// Always notify the channel
 		if (slackNotificationChannel != null) {
@@ -73,7 +86,19 @@ public class SlackIntegration {
 		SlackUser user = findUserFromPredefinedMapping(userMapping);
 		// then try email lookup
 		if (user == null) {
-			user = slackSession.findUserByEmail(userEmail);
+			if (userEmail != null) {
+				// if we found the user's email in gitlab, use that...
+				user = slackSession.findUserByEmail(userEmail);
+			} else {
+				// otherwise guess their slack email from realname + emaildomains
+				List<String> potentialEmails = guessEmails(mrInfo.getAssignee());
+				for (String potentialUserEmail : potentialEmails) {
+					user = slackSession.findUserByEmail(potentialUserEmail);
+					if (user != null) {
+						break;
+					}
+				}
+			}
 		}
 		// at this point, we are either fuzzy matching, or not matching at all.  either way, record this in the mapping table for resolution later.
 		if (user == null) {
@@ -92,7 +117,7 @@ public class SlackIntegration {
 					buildMRNameSection(mrInfo.getMr(), true),
 					mrInfo.getFullyQualifiedProjectName(),
 					mrInfo.getAuthor().getName());
-				logger.info("Notifying user {} for [{}]{} at reminder time {}.", userEmail,
+				logger.info("Notifying user {} for [{}]{} at reminder time {}.", mrInfo.getAssignee().getName(),
 					mrInfo.getFullyQualifiedProjectName(),
 					buildMRNameSection(mrInfo.getMr()),
 					reminderLength);
@@ -102,7 +127,7 @@ public class SlackIntegration {
 					messageForUser = reminderLength.getReminderForAuthor(getFirstName(mrInfo.getAssignee()),
 						buildMRNameSection(mrInfo.getMr(), true),
 						mrInfo.getFullyQualifiedProjectName());
-					logger.info("Notifying user {} for [{}]{} with author assignment message at reminder time {}.", userEmail,
+					logger.info("Notifying user {} for [{}]{} with author assignment message at reminder time {}.", mrInfo.getAssignee().getName(),
 						mrInfo.getFullyQualifiedProjectName(),
 						buildMRNameSection(mrInfo.getMr()),
 						reminderLength);
@@ -120,6 +145,10 @@ public class SlackIntegration {
 		}
 	}
 
+	/**
+	 * Save a user mapping
+	 * @param user
+	 */
 	private void recordUserMapping(User user) {
 		logger.info("Recording user in UserMapping lookup table.");
 		UserMappingModel userMapping = new UserMappingModel(user.getUsername());
@@ -127,6 +156,11 @@ public class SlackIntegration {
 		mergeMinderDb.saveUserMapping(userMapping);
 	}
 
+	/**
+	 * Finds a slack user based on the data in the UserMapping table.
+	 * @param userMapping
+	 * @return
+	 */
 	private SlackUser findUserFromPredefinedMapping(UserMappingModel userMapping) {
 		if (userMapping == null) {
 			return null;
@@ -222,5 +256,18 @@ public class SlackIntegration {
 	 */
 	private String getFirstName(User u) {
 		return (u == null || u.getName() == null) ? "Anonymous" : u.getName().substring(0, u.getName().indexOf(" ")).trim();
+	}
+
+	private List<String> guessEmails(User user) {
+		if (user == null || emailDomains == null) {
+			return Collections.emptyList();
+		}
+		List<String> emailGuesses = new ArrayList<>();
+		// email domains should be comma separated
+		String[] splitEmailDomains = emailDomains.split(",");
+		for (String emailDomain : splitEmailDomains) {
+			emailGuesses.add(user.getName().toLowerCase().replaceAll("\\s", ".") + "@" + emailDomain);
+		}
+		return emailGuesses;
 	}
 }

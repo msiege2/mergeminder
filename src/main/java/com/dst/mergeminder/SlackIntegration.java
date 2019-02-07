@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
@@ -115,6 +116,7 @@ public class SlackIntegration {
 				// The assignee is not the author.  Send a regular note.
 				messageForUser = reminderLength.getSlackPrivateNotificationMessage(getFirstName(mrInfo.getAssignee()),
 					buildMRNameSection(mrInfo.getMr(), true),
+					buildMRTitleSection(mrInfo.getMr()),
 					mrInfo.getFullyQualifiedProjectName(),
 					mrInfo.getAuthor().getName());
 				logger.info("Notifying user {} for [{}]{} at reminder time {}.", mrInfo.getAssignee().getName(),
@@ -126,6 +128,7 @@ public class SlackIntegration {
 					// The MR is assigned to the author.  Remind them.
 					messageForUser = reminderLength.getReminderForAuthor(getFirstName(mrInfo.getAssignee()),
 						buildMRNameSection(mrInfo.getMr(), true),
+						buildMRTitleSection(mrInfo.getMr()),
 						mrInfo.getFullyQualifiedProjectName());
 					logger.info("Notifying user {} for [{}]{} with author assignment message at reminder time {}.", mrInfo.getAssignee().getName(),
 						mrInfo.getFullyQualifiedProjectName(),
@@ -221,6 +224,14 @@ public class SlackIntegration {
 			sb.append("MR!").append(mr.getIid());
 		}
 		return sb.toString();
+	}
+
+	private String buildMRTitleSection(MergeRequest mr) {
+		if (StringUtils.isEmpty(mr.getTitle())) {
+			return "{NO TITLE}";
+		}
+		String[] lines = mr.getTitle().split("\\n");
+		return lines[0];
 	}
 
 	/**

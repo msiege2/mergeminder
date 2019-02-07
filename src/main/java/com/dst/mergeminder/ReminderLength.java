@@ -77,25 +77,57 @@ public enum ReminderLength {
 	 * @param authorName
 	 * @return
 	 */
-	public String getSlackPrivateNotificationMessage(String assigneeFirstName, String mrName, String fullyQualifiedProjectName, String authorName) {
+	public String getSlackPrivateNotificationMessage(String assigneeFirstName, String mrName, String mrTitle, String fullyQualifiedProjectName, String authorName) {
 		switch (this) {
 			case INITIAL_REMINDER:
-				return ReminderMessages.INITIAL_REMINDER_PM.replaceAll("%F_NAME%", assigneeFirstName).replaceAll("%MRNAME%", mrName).replaceAll("%FQPN%", fullyQualifiedProjectName).replaceAll("%AUTHOR_NAME%", authorName);
+				return ReminderMessages.INITIAL_REMINDER_PM.replaceAll("%F_NAME%", assigneeFirstName)
+					.replaceAll("%MRNAME%", mrName)
+					.replaceAll("%MRTITLE%", mrTitle)
+					.replaceAll("%FQPN%", fullyQualifiedProjectName)
+					.replaceAll("%AUTHOR_NAME%", authorName);
 			case TWO_HOURS:
-				return ReminderMessages.TWO_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName).replaceAll("%MRNAME%", mrName).replaceAll("%FQPN%", fullyQualifiedProjectName).replaceAll("%AUTHOR_NAME%", authorName);
+				return ReminderMessages.TWO_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName)
+					.replaceAll("%MRNAME%", mrName)
+					.replaceAll("%MRTITLE%", mrTitle)
+					.replaceAll("%FQPN%", fullyQualifiedProjectName)
+					.replaceAll("%AUTHOR_NAME%", authorName);
 			case FOUR_HOURS:
-				return ReminderMessages.FOUR_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName).replaceAll("%MRNAME%", mrName).replaceAll("%FQPN%", fullyQualifiedProjectName).replaceAll("%AUTHOR_NAME%", authorName);
+				return ReminderMessages.FOUR_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName)
+					.replaceAll("%MRNAME%", mrName)
+					.replaceAll("%MRTITLE%", mrTitle)
+					.replaceAll("%FQPN%", fullyQualifiedProjectName)
+					.replaceAll("%AUTHOR_NAME%", authorName);
 			case SIX_HOURS:
-				return ReminderMessages.SIX_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName).replaceAll("%MRNAME%", mrName).replaceAll("%FQPN%", fullyQualifiedProjectName).replaceAll("%AUTHOR_NAME%", authorName);
+				return ReminderMessages.SIX_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName)
+					.replaceAll("%MRNAME%", mrName)
+					.replaceAll("%MRTITLE%", mrTitle)
+					.replaceAll("%FQPN%", fullyQualifiedProjectName)
+					.replaceAll("%AUTHOR_NAME%", authorName);
 			case EIGHT_HOURS:
-				return ReminderMessages.EIGHT_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName).replaceAll("%MRNAME%", mrName).replaceAll("%FQPN%", fullyQualifiedProjectName).replaceAll("%AUTHOR_NAME%", authorName);
+				return ReminderMessages.EIGHT_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName)
+					.replaceAll("%MRNAME%", mrName)
+					.replaceAll("%MRTITLE%", mrTitle)
+					.replaceAll("%FQPN%", fullyQualifiedProjectName)
+					.replaceAll("%AUTHOR_NAME%", authorName);
 			case TWELVE_HOURS:
-				return ReminderMessages.TWELVE_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName).replaceAll("%MRNAME%", mrName).replaceAll("%FQPN%", fullyQualifiedProjectName).replaceAll("%AUTHOR_NAME%", authorName);
+				return ReminderMessages.TWELVE_HOURS_PM.replaceAll("%F_NAME%", assigneeFirstName)
+					.replaceAll("%MRNAME%", mrName)
+					.replaceAll("%MRTITLE%", mrTitle)
+					.replaceAll("%FQPN%", fullyQualifiedProjectName)
+					.replaceAll("%AUTHOR_NAME%", authorName);
 			case ONE_DAY:
-				return ReminderMessages.ONE_DAY_PM.replaceAll("%F_NAME%", assigneeFirstName).replaceAll("%MRNAME%", mrName).replaceAll("%FQPN%", fullyQualifiedProjectName).replaceAll("%AUTHOR_NAME%", authorName);
+				return ReminderMessages.ONE_DAY_PM.replaceAll("%F_NAME%", assigneeFirstName)
+					.replaceAll("%MRNAME%", mrName)
+					.replaceAll("%MRTITLE%", mrTitle)
+					.replaceAll("%FQPN%", fullyQualifiedProjectName)
+					.replaceAll("%AUTHOR_NAME%", authorName);
 			case TWO_DAYS:
 			default:
-				return ReminderMessages.TWO_DAYS_PM.replaceAll("%F_NAME%", assigneeFirstName).replaceAll("%MRNAME%", mrName).replaceAll("%FQPN%", fullyQualifiedProjectName).replaceAll("%AUTHOR_NAME%", authorName);
+				return ReminderMessages.TWO_DAYS_PM.replaceAll("%F_NAME%", assigneeFirstName)
+					.replaceAll("%MRNAME%", mrName)
+					.replaceAll("%MRTITLE%", mrTitle)
+					.replaceAll("%FQPN%", fullyQualifiedProjectName)
+					.replaceAll("%AUTHOR_NAME%", authorName);
 		}
 	}
 
@@ -106,8 +138,12 @@ public enum ReminderLength {
 	 * @param fullyQualifiedProjectName
 	 * @return
 	 */
-	public String getReminderForAuthor(String assigneeFirstName, String mrName, String fullyQualifiedProjectName) {
-		return ReminderMessages.AUTHOR_REMINDER_PM.replaceAll("%F_NAME%", assigneeFirstName).replaceAll("%MRNAME%", mrName).replaceAll("%FQPN%", fullyQualifiedProjectName).replaceAll("%HOURS%", Long.toString(this.hours));
+	public String getReminderForAuthor(String assigneeFirstName, String mrName, String mrTitle, String fullyQualifiedProjectName) {
+		return ReminderMessages.AUTHOR_REMINDER_PM.replaceAll("%F_NAME%", assigneeFirstName)
+			.replaceAll("%MRNAME%", mrName)
+			.replaceAll("%MRTITLE%", mrTitle)
+			.replaceAll("%FQPN%", fullyQualifiedProjectName)
+			.replaceAll("%HOURS%", Long.toString(this.hours));
 	}
 
 	/**
@@ -115,31 +151,31 @@ public enum ReminderLength {
 	 */
 	private class ReminderMessages {
 
-		private static final String AUTHOR_REMINDER_PM = "Hey %F_NAME%.  I just wanted to let you know that your merge request %MRNAME% in [%FQPN%] is assigned"
+		private static final String AUTHOR_REMINDER_PM = "Hey %F_NAME%.  I just wanted to let you know that your merge request (%MRNAME% -- %MRTITLE%) in [%FQPN%] is assigned"
 			+ " to you.  It has been assigned to you for around %HOURS% hours.  Please don't forget about it!";
 
 		private static final String INITIAL_REMINDER_PM = "Hey %F_NAME%!  I just wanted to let you know that you've been assigned a "
-			+ "merge request -- %MRNAME%.  It was created by %AUTHOR_NAME% in project [%FQPN%].  Please do your best to take a look at it when you can!";
+			+ "merge request (%MRNAME% -- %MRTITLE%).  It was created by %AUTHOR_NAME% in project [%FQPN%].  Please do your best to take a look at it when you can!";
 
-		private static final String TWO_HOURS_PM = "Hey there, %F_NAME%!  I see that merge request (%MRNAME%) in project [%FQPN%]"
+		private static final String TWO_HOURS_PM = "Hey there, %F_NAME%!  I see that merge request (%MRNAME% -- %MRTITLE%) in project [%FQPN%]"
 			+ " has been sitting there for a couple of hours.  Please do your best to take a look at it when you can.";
 
-		private static final String FOUR_HOURS_PM = "Hey there, %F_NAME%!  I see that merge request (%MRNAME%) in project [%FQPN%]"
+		private static final String FOUR_HOURS_PM = "Hey there, %F_NAME%!  I see that merge request (%MRNAME% -- %MRTITLE%) in project [%FQPN%]"
 			+ " has been assigned to you for four hours now.  Help %AUTHOR_NAME% out and take a look when you have a chance.";
 
-		private static final String SIX_HOURS_PM = "Hey there, %F_NAME%!  I see that merge request (%MRNAME%) in project [%FQPN%]"
+		private static final String SIX_HOURS_PM = "Hey there, %F_NAME%!  I see that merge request (%MRNAME% -- %MRTITLE%) in project [%FQPN%]"
 			+ " has been assigned to you for six hours now.  Help %AUTHOR_NAME% out and take a look when you have a chance.";
 
-		private static final String EIGHT_HOURS_PM = "%F_NAME%, %F_NAME%, %F_NAME%.  I see that merge request (%MRNAME%) in project [%FQPN%]"
+		private static final String EIGHT_HOURS_PM = "%F_NAME%, %F_NAME%, %F_NAME%.  I see that merge request (%MRNAME% -- %MRTITLE%) in project [%FQPN%]"
 			+ " has been assigned to you for eight hours now.  Help %AUTHOR_NAME% out and review it as soon as you can.";
 
-		private static final String TWELVE_HOURS_PM = "%F_NAME%, I see that merge request (%MRNAME%) in project [%FQPN%]"
+		private static final String TWELVE_HOURS_PM = "%F_NAME%, I see that merge request (%MRNAME% -- %MRTITLE%) in project [%FQPN%]"
 			+ " has been assigned to you for over twelve hours.  %AUTHOR_NAME% probably wants to get this thing closed.  Please take a look ASAP.  Thanks.";
 
-		private static final String ONE_DAY_PM = "%F_NAME%, I see %MRNAME% in project [%FQPN%]"
+		private static final String ONE_DAY_PM = "%F_NAME%, I see (%MRNAME% -- %MRTITLE%) in project [%FQPN%]"
 			+ " has been assigned to you for over a day!  They don't call me MergeMinder for nothing!  Let's get this closed.  Please take a look ASAP.  Thank you.";
 
-		private static final String TWO_DAYS_PM = "Come on, %F_NAME%!  I see that %MRNAME% in project [%FQPN%]"
+		private static final String TWO_DAYS_PM = "Come on, %F_NAME%!  I see that (%MRNAME% -- %MRTITLE%) in project [%FQPN%]"
 			+ " has been assigned to you for over two days.  Please take a look at this and resolve it ASAP.  Thanks.";
 
 	}

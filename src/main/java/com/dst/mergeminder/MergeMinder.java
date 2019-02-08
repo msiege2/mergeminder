@@ -108,7 +108,7 @@ public class MergeMinder {
 	 */
 	@Scheduled(cron = "0 0 * * * *")
 	public void mergePurge() {
-		if (!bypassSchedule && !timeSchedule.shouldPurgeNow()) {
+		if (!bypassSchedule && timeSchedule.shouldPurgeNow()) {
 			logger.info("Running MergePurge.");
 			int purgeCount = 0;
 			List<MergeRequestModel> merges = mergeMinderDb.getAllMergeRequestModels();

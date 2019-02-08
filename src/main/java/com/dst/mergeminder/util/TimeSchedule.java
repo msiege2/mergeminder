@@ -58,8 +58,8 @@ public class TimeSchedule {
 	public boolean shouldPurgeNow() {
 		ZonedDateTime currentEasternTime = ZonedDateTime.ofInstant(Instant.now(), EASTERN_ZONE);
 		logger.debug("Current Eastern time is: {}", dateFormat.format(currentEasternTime));
-		// Only purge at midnight
-		return (currentEasternTime.getHour() == 0);
+		// Only purge at midnight and noon
+		return (currentEasternTime.getHour() == 0 || currentEasternTime.getHour() == 12);
 	}
 
 	public String currentEasternTime() {

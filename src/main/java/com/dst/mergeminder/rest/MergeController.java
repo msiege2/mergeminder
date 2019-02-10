@@ -6,16 +6,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dst.mergeminder.MergeMinder;
 import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestModel;
+import com.dst.mergeminder.dto.MinderProjectsModel;
 import com.dst.mergeminder.dto.UserMappingModel;
 
 @RestController
@@ -66,6 +69,40 @@ public class MergeController {
 	}
 
 	/**
+	 * Gets all the projects being tracked.
+	 * @return
+	 */
+	@GetMapping("/projects")
+	public List<MinderProjectsModel> getAllProjects() {
+		return mergeMinderDb.getMinderProjects();
+	}
+
+	/**
+	 * Adds a new project to be tracked.
+	 * @return
+	 */
+	@PostMapping("/projects")
+	public ResponseEntity<MinderProjectsModel> createProject(@RequestBody MinderProjectsModel newProject) {
+		if (newProject == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+		newProject.setId(null);
+		newProject = mergeMinderDb.saveMinderProject(newProject);
+
+		return ResponseEntity.ok(newProject);
+	}
+
+	/**
+	 * Gets all the merges being tracked in the database.
+	 * @return
+	 */
+	@DeleteMapping("/projects/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteProject(@PathVariable Integer id) {
+		mergeMinderDb.removeMinderProject(id);
+	}
+
+	/**
 	 * Gets all the user mapping overrides.
 	 * @return
 	 */
@@ -86,7 +123,7 @@ public class MergeController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
 		newUserMapping.setId(null);
-		mergeMinderDb.saveUserMapping(newUserMapping);
+		newUserMapping = mergeMinderDb.saveUserMapping(newUserMapping);
 
 		return ResponseEntity.ok(newUserMapping);
 	}
@@ -105,7 +142,7 @@ public class MergeController {
 		}
 		existingUserMapping.setSlackUID(newUserMapping.getSlackUID());
 		existingUserMapping.setSlackEmail(newUserMapping.getSlackEmail());
-		mergeMinderDb.saveUserMapping(existingUserMapping);
+		existingUserMapping = mergeMinderDb.saveUserMapping(existingUserMapping);
 
 		return ResponseEntity.ok(existingUserMapping);
 
@@ -113,12 +150,12 @@ public class MergeController {
 
 	@Async
 	void kickoffMind() {
-		mergeMinder.mindMerges();
+		mergeMinder.doMinding();
 	}
 
 	@Async
 	void kickoffPurge() {
-		mergeMinder.mergePurge();
+		mergeMinder.doPurge();
 	}
 
 }

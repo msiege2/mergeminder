@@ -71,6 +71,10 @@ public class MergeMinder {
 			logger.info("Skipping checks during off hours.");
 			return;
 		}
+		doMinding();
+	}
+
+	public void doMinding() {
 		List<MinderProjectsModel> projectList = mergeMinderDb.getMinderProjects();
 		for (MinderProjectsModel minderProject : projectList) {
 			try {
@@ -109,22 +113,26 @@ public class MergeMinder {
 	@Scheduled(cron = "0 0 * * * *")
 	public void mergePurge() {
 		if (!bypassSchedule && timeSchedule.shouldPurgeNow()) {
-			logger.info("Running MergePurge.");
-			int purgeCount = 0;
-			List<MergeRequestModel> merges = mergeMinderDb.getAllMergeRequestModels();
-			for (MergeRequestModel merge : merges) {
-				try {
-					if (merge.getLastUpdated().toInstant().isBefore(Instant.now().minus(2, ChronoUnit.DAYS)) &&
-						gitlabIntegration.isMergeRequestMergedOrClosed(merge.getProject(), merge.getMrId())) {
-						mergeMinderDb.removeMergeRequestModel(merge);
-						purgeCount++;
-					}
-				} catch (GitLabApiException e) {
-					logger.error("Problem with GitLab integration.", e);
-				}
-			}
-			logger.info("MergePurge complete.  Removed {} entries.", purgeCount);
+			doPurge();
 		}
+	}
+
+	public void doPurge() {
+		logger.info("Running MergePurge.");
+		int purgeCount = 0;
+		List<MergeRequestModel> merges = mergeMinderDb.getAllMergeRequestModels();
+		for (MergeRequestModel merge : merges) {
+			try {
+				if (merge.getLastUpdated().toInstant().isBefore(Instant.now().minus(2, ChronoUnit.DAYS)) &&
+					gitlabIntegration.isMergeRequestMergedOrClosed(merge.getProject(), merge.getMrId())) {
+					mergeMinderDb.removeMergeRequestModel(merge);
+					purgeCount++;
+				}
+			} catch (GitLabApiException e) {
+				logger.error("Problem with GitLab integration.", e);
+			}
+		}
+		logger.info("MergePurge complete.  Removed {} entries.", purgeCount);
 	}
 
 	/**

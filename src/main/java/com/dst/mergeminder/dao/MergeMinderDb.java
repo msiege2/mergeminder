@@ -26,15 +26,13 @@ public class MergeMinderDb {
 	@Autowired
 	UserMappingRepository userMappingRepository;
 
-	public void recordMergeRequest(MergeRequestAssignmentInfo mrInfo, long lastNotificationAt) {
+	// Merge Request Models
+	////////////////////////
+	public MergeRequestModel recordMergeRequest(MergeRequestAssignmentInfo mrInfo, long lastNotificationAt) {
 		MergeRequestModel mrModel = mergeRequestRepository.findById(mrInfo.getMr().getId()).orElse(null);
 		MergeRequestModel newMrModel = updateMrModel(mrModel, mrInfo, lastNotificationAt);
 
-		mergeRequestRepository.save(newMrModel);
-	}
-
-	public List<MinderProjectsModel> getMinderProjects() {
-		return StreamSupport.stream(minderProjectsRepository.findAll().spliterator(), false).collect(Collectors.toList());
+		return mergeRequestRepository.save(newMrModel);
 	}
 
 	public List<MergeRequestModel> getAllMergeRequestModels() {
@@ -47,24 +45,6 @@ public class MergeMinderDb {
 
 	public void removeMergeRequestModel(MergeRequestModel model) {
 		mergeRequestRepository.delete(model);
-	}
-
-	public List<UserMappingModel> getAllUserMappings() {
-		return StreamSupport.stream(userMappingRepository.findAll().spliterator(), false).collect(Collectors.toList());
-	}
-
-	public UserMappingModel getUserMappingById(Integer id) {
-		return userMappingRepository.findById(id).orElse(null);
-	}
-
-	public UserMappingModel getUserMappingByGitlabUsername(String gitlabUsername) {
-		return userMappingRepository.findByGitlabUsername(gitlabUsername);
-	}
-
-	public void saveUserMapping(UserMappingModel mapping) {
-		if (mapping != null) {
-			userMappingRepository.save(mapping);
-		}
 	}
 
 	/**
@@ -80,6 +60,48 @@ public class MergeMinderDb {
 			return -1;
 		}
 		return (mrModel == null ? -1 : mrModel.getLastReminderSentAt());
+	}
+
+	// Project Models
+	//////////////////
+	public List<MinderProjectsModel> getMinderProjects() {
+		return StreamSupport.stream(minderProjectsRepository.findAll().spliterator(), false).collect(Collectors.toList());
+	}
+
+	public MinderProjectsModel saveMinderProject(MinderProjectsModel project) {
+		if (project != null) {
+			return minderProjectsRepository.save(project);
+		}
+		return null;
+	}
+
+	public void removeMinderProject(Integer id) {
+		minderProjectsRepository.delete(minderProjectsRepository.findById(id).orElse(null));
+	}
+
+	public void removeMinderProject(MinderProjectsModel project) {
+		minderProjectsRepository.delete(project);
+	}
+
+	// User Mapping Models
+	///////////////////////
+	public List<UserMappingModel> getAllUserMappings() {
+		return StreamSupport.stream(userMappingRepository.findAll().spliterator(), false).collect(Collectors.toList());
+	}
+
+	public UserMappingModel getUserMappingById(Integer id) {
+		return userMappingRepository.findById(id).orElse(null);
+	}
+
+	public UserMappingModel getUserMappingByGitlabUsername(String gitlabUsername) {
+		return userMappingRepository.findByGitlabUsername(gitlabUsername);
+	}
+
+	public UserMappingModel saveUserMapping(UserMappingModel mapping) {
+		if (mapping != null) {
+			return userMappingRepository.save(mapping);
+		}
+		return null;
 	}
 
 	private MergeRequestModel updateMrModel(MergeRequestModel mrModel, MergeRequestAssignmentInfo mrInfo, long lastNotificationAt) {

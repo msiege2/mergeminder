@@ -67,7 +67,7 @@ public class MergeMinder {
 	public void mindMerges() {
 		logger.info("Running MergeMinder checks.");
 		logger.info("Current Eastern Time: {}", timeSchedule.currentEasternTime());
-		if (!bypassSchedule && !timeSchedule.shouldAlertNow()) {
+		if (!bypassSchedule || !timeSchedule.shouldAlertNow()) {
 			logger.info("Skipping checks during off hours.");
 			return;
 		}

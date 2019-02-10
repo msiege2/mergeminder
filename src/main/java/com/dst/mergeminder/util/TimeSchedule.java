@@ -35,14 +35,14 @@ public class TimeSchedule {
 	@PostConstruct
 	public void init() {
 		ZonedDateTime currentEasternTime = ZonedDateTime.ofInstant(Instant.now(), EASTERN_ZONE);
-		logger.info("TimeSchedule initialization complete.  Begin alerting at {}:00, stop alerting at {}:00.  DO {} alert on weekends. Current Eastern time is: {}",
-			beginAlertHour, endAlertHour, alertOnWeekends ? "" : "NOT", dateFormat.format(currentEasternTime));
+		logger.info("TimeSchedule initialization complete.  Begin alerting at {}:00, stop alerting at {}:00.  {} alert on weekends. Current Eastern time is: {}",
+			beginAlertHour, endAlertHour, alertOnWeekends ? "DO" : "DO NOT", dateFormat.format(currentEasternTime));
 	}
 
 	public boolean shouldAlertNow() {
 		ZonedDateTime currentEasternTime = ZonedDateTime.ofInstant(Instant.now(), EASTERN_ZONE);
 		logger.debug("Current Eastern time is: {}", dateFormat.format(currentEasternTime));
-		if (alertOnWeekends && (currentEasternTime.getDayOfWeek() == DayOfWeek.SATURDAY || currentEasternTime.getDayOfWeek() == DayOfWeek.SUNDAY)) {
+		if (!alertOnWeekends && (currentEasternTime.getDayOfWeek() == DayOfWeek.SATURDAY || currentEasternTime.getDayOfWeek() == DayOfWeek.SUNDAY)) {
 			logger.debug("It's the weekend.  No notifications.");
 			return false;
 		}

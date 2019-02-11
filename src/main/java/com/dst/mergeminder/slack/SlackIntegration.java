@@ -1,4 +1,4 @@
-package com.dst.mergeminder;
+package com.dst.mergeminder.slack;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.dst.mergeminder.MergeMinder;
+import com.dst.mergeminder.ReminderLength;
 import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
 import com.dst.mergeminder.dto.UserMappingModel;
@@ -24,6 +26,7 @@ import com.ullink.slack.simpleslackapi.SlackPreparedMessage;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
 import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
+import com.ullink.slack.simpleslackapi.listeners.SlackMessagePostedListener;
 
 @Component
 public class SlackIntegration {
@@ -32,6 +35,8 @@ public class SlackIntegration {
 
 	@Autowired
 	MergeMinderDb mergeMinderDb;
+	@Autowired
+	Conversation conversation;
 
 	@Value("${slack.botToken}")
 	private String slackToken;
@@ -55,9 +60,19 @@ public class SlackIntegration {
 		SlackSession session = SlackSessionFactory.createWebSocketSlackSession(slackToken);
 		session.connect();
 		this.slackSession = session;
+		this.registerListener();
 		logger.info("Slack connection created.  Notification channel is {}.  User notification is {}",
 			slackNotificationChannel != null ? "ENABLED on channel #" + slackNotificationChannel : "DISABLED",
 			notifyUsers ? "ENABLED" : "DISABLED");
+	}
+
+	public void registerListener() {
+		logger.info("Registering Slack message listener for conversational functionality.");
+		// first define the listener
+		SlackMessagePostedListener messagePostedListener = (event, session) -> conversation.handleIncomingEvent(event, session);
+		//add it to the session
+		slackSession.addMessagePostedListener(messagePostedListener);
+		logger.info("Message listener registration complete.");
 	}
 
 	/**
@@ -221,7 +236,7 @@ public class SlackIntegration {
 	/**
 	 * Builds a section refering to the MR as "MR!xxxx" with optional link support.
 	 * @param mr
-	 * @param includeLink
+	 * @param suppressLink
 	 * @return
 	 */
 	private String buildMRNameSection(MergeRequest mr, boolean suppressLink) {

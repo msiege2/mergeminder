@@ -1,4 +1,4 @@
-package com.dst.mergeminder;
+package com.dst.mergeminder.gitlab;
 
 import java.util.ArrayList;
 import java.util.Collection;

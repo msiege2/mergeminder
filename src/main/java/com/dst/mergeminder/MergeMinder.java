@@ -22,6 +22,8 @@ import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
 import com.dst.mergeminder.dto.MergeRequestModel;
 import com.dst.mergeminder.dto.MinderProjectsModel;
+import com.dst.mergeminder.gitlab.GitlabIntegration;
+import com.dst.mergeminder.slack.SlackIntegration;
 import com.dst.mergeminder.util.TimeSchedule;
 
 /**
@@ -67,7 +69,7 @@ public class MergeMinder {
 	public void mindMerges() {
 		logger.info("Running MergeMinder checks.");
 		logger.info("Current Eastern Time: {}", timeSchedule.currentEasternTime());
-		if (!bypassSchedule || !timeSchedule.shouldAlertNow()) {
+		if (!bypassSchedule && !timeSchedule.shouldAlertNow()) {
 			logger.info("Skipping checks during off hours.");
 			return;
 		}

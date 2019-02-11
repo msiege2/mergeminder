@@ -5,14 +5,17 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 @Entity(name = "MinderProjects")
+@JsonPropertyOrder({"id", "namespace", "project"})
 public class MinderProjectsModel {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	private String project;
 	private String namespace;
+	private String project;
 
 	public MinderProjectsModel() {
 		// empty constructor

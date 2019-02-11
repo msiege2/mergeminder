@@ -5,7 +5,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 @Entity(name = "UserMapping")
+@JsonPropertyOrder({"id", "gitlabUsername", "gitlabName", "slackUID", "slackEmail"})
 public class UserMappingModel {
 
 	@Id

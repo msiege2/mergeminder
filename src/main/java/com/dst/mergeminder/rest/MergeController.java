@@ -2,6 +2,8 @@ package com.dst.mergeminder.rest;
 
 import java.util.List;
 
+import javax.json.Json;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,9 +36,13 @@ public class MergeController {
 	 * @return
 	 */
 	@GetMapping("/mind")
-	public String mind() {
+	public ResponseEntity<String> mind() {
 		kickoffMind();
-		return "Ran minding.";
+		String jsonContent = Json.createObjectBuilder()
+			.add("status", "Ran merges.")
+			.build()
+			.toString();
+		return ResponseEntity.ok(jsonContent);
 	}
 
 	/**
@@ -44,9 +50,13 @@ public class MergeController {
 	 * @return
 	 */
 	@GetMapping("/purge")
-	public String purge() {
+	public ResponseEntity<String> purge() {
 		kickoffPurge();
-		return "Ran MergePurge.";
+		String jsonContent = Json.createObjectBuilder()
+			.add("status", "Ran MergePurge.")
+			.build()
+			.toString();
+		return ResponseEntity.ok(jsonContent);
 	}
 
 	/**

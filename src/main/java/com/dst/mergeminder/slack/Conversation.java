@@ -1,5 +1,7 @@
 package com.dst.mergeminder.slack;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,7 +27,7 @@ public class Conversation {
 			return;
 		}
 		SlackChannel channelOnWhichMessageWasPosted = event.getChannel();
-		if (channelOnWhichMessageWasPosted.isDirect()) {
+		if (SlackChannel.SlackChannelType.INSTANT_MESSAGING == channelOnWhichMessageWasPosted.getType()) {
 			handleDirectMessage(event, session);
 		}
 	}
@@ -36,26 +38,41 @@ public class Conversation {
 		SlackUser messageSender = event.getSender();
 
 		if (messageContent.toLowerCase().contains("help")) {
-			session.sendMessage(channel, "I'm alive!  Soon I'll be able to help you to understand some of the things I can do.");
+			simulateHumanStyleMessageSending(channel, "I'm alive!  Soon I'll be able to help you to understand some of the things I can do.", session);
 			logger.info("Received 'HELP' request from user: {}", messageSender.getRealName());
 			return;
 		}
 		if (messageContent.toLowerCase().contains("hi") || messageContent.toLowerCase().contains("hello") || messageContent.toLowerCase().contains("hey")) {
-			session.sendMessage(channel, "Hello, " + messageSender.getRealName() + ".");
+			simulateHumanStyleMessageSending(channel, "Hello, " + messageSender.getRealName() + ".", session);
 			logger.info("Received 'HELLO' request from user: {}", messageSender.getRealName());
 			return;
 		}
 		if (messageContent.toLowerCase().contains("shit") || messageContent.toLowerCase().contains("piss") || messageContent.toLowerCase().contains("fuck")
 			|| messageContent.toLowerCase().contains("bitch") || messageContent.toLowerCase().contains("crap") || messageContent.toLowerCase().contains("hell")) {
-			session.sendMessage(channel, "Don't talk to me that way!  I'm sure you wouldn't speak to your mother that way!");
+			simulateHumanStyleMessageSending(channel, "Don't talk to me that way!  I'm sure you wouldn't speak to your mother that way!", session);
 			logger.info("Received 'POTTY MOUTH' request from user: {}", messageSender.getRealName());
 			return;
 		}
 
-		session.sendMessage(channel, "Hmm, I don't know quite what you are saying.  Sorry.");
+		simulateHumanStyleMessageSending(channel, "Hmm, I don't know quite what you are saying.  Sorry.", session);
 		logger.info("Received 'UNKNOWN' request from user: {}", messageSender.getRealName());
 		return;
 
 	}
 
+	private void simulateHumanStyleMessageSending(SlackChannel channel, String message, SlackSession session) {
+		// first generate a random "typing time between 1 and 3 seconds.
+		int randomTypingTime = ThreadLocalRandom.current().nextInt(1000, 3000 + 1);
+		// then take 0.025 seconds for each character in the message.  This will be added to the typing time.
+		int lengthBasedSplay = message.length() * 25;
+
+		// Tell the channel MergeMinder is typing.
+		session.sendTyping(channel);
+		try {
+			Thread.sleep(randomTypingTime + lengthBasedSplay);
+		} catch (InterruptedException e) {
+			// ignored
+		}
+		session.sendMessage(channel, message);
+	}
 }

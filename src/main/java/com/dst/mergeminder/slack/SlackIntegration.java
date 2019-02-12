@@ -137,7 +137,7 @@ public class SlackIntegration {
 					mrInfo.getAuthor().getName());
 				logger.info("Notifying user {} for [{}]{} at reminder time {}.", mrInfo.getAssignee().getName(),
 					mrInfo.getFullyQualifiedProjectName(),
-					buildMRNameSection(mrInfo.getMr()),
+					buildMRNameSection(mrInfo.getMr(), Boolean.TRUE),
 					reminderLength);
 			} else {
 				if (reminderLength != ReminderLength.INITIAL_REMINDER) {
@@ -148,7 +148,7 @@ public class SlackIntegration {
 						mrInfo.getFullyQualifiedProjectName());
 					logger.info("Notifying user {} for [{}]{} with author assignment message at reminder time {}.", mrInfo.getAssignee().getName(),
 						mrInfo.getFullyQualifiedProjectName(),
-						buildMRNameSection(mrInfo.getMr()),
+						buildMRNameSection(mrInfo.getMr(), Boolean.TRUE),
 						reminderLength);
 				} else {
 					logger.info("Skipping author assignment message at reminder time {}.", reminderLength);

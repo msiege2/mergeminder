@@ -101,9 +101,9 @@ public class Conversation {
 	 */
 	private void simulateHumanStyleMessageSending(SlackChannel channel, SlackPreparedMessage message, SlackSession session) {
 		// first generate a random "typing time between 600 and 1200 milliseconds.
-		int randomTypingTime = ThreadLocalRandom.current().nextInt(600, 1200 + 1);
-		// then take 0.025 seconds for each character in the message.  This will be added to the typing time.
-		int lengthBasedSplay = message.getMessage().length() * 25;
+		int randomTypingTime = ThreadLocalRandom.current().nextInt(500, 900 + 1);
+		// then take a pseudo-random amount of milliseconds for each character in the message.  This will be added to the typing time.
+		int lengthBasedSplay = message.getMessage().length() * 20 * ThreadLocalRandom.current().nextInt(35, 81) / 100;
 
 		// Tell the channel MergeMinder is typing.
 		session.sendTyping(channel);

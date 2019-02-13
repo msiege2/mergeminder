@@ -7,10 +7,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.ullink.slack.simpleslackapi.SlackChannel;
+import com.ullink.slack.simpleslackapi.SlackPreparedMessage;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
 import com.ullink.slack.simpleslackapi.events.SlackMessagePosted;
 
+/**
+ * This bean handles the conversation aspects of MergeMinder.
+ */
 @Component
 public class Conversation {
 
@@ -20,6 +24,11 @@ public class Conversation {
 		// empty constructor
 	}
 
+	/**
+	 * Handler method for incoming events.
+	 * @param event
+	 * @param session
+	 */
 	void handleIncomingEvent(SlackMessagePosted event, SlackSession session) {
 		SlackUser messageSender = event.getSender();
 		if (messageSender.getUserName().equalsIgnoreCase("mergeminder")) {
@@ -32,17 +41,27 @@ public class Conversation {
 		}
 	}
 
+	/**
+	 * Responds to DM events.
+	 * @param event
+	 * @param session
+	 */
 	void handleDirectMessage(SlackMessagePosted event, SlackSession session) {
 		SlackChannel channel = event.getChannel();
 		String messageContent = event.getMessageContent();
 		SlackUser messageSender = event.getSender();
 
-		if (messageContent.toLowerCase().contains("help")) {
+		if (messageContent.toLowerCase().startsWith("help")) {
 			simulateHumanStyleMessageSending(channel, "I'm alive!  Soon I'll be able to help you to understand some of the things I can do.", session);
 			logger.info("Received 'HELP' request from user: {}", messageSender.getRealName());
 			return;
 		}
-		if (messageContent.toLowerCase().contains("hi") || messageContent.toLowerCase().contains("hello") || messageContent.toLowerCase().contains("hey")) {
+		if (messageContent.toLowerCase().startsWith("thank you") || messageContent.toLowerCase().startsWith("thanks")) {
+			simulateHumanStyleMessageSending(channel, "You're welcome.", session);
+			logger.info("Received 'HELLO' request from user: {}", messageSender.getRealName());
+			return;
+		}
+		if (messageContent.toLowerCase().startsWith("hi") || messageContent.toLowerCase().startsWith("hello") || messageContent.toLowerCase().startsWith("hey")) {
 			simulateHumanStyleMessageSending(channel, "Hello, " + messageSender.getRealName() + ".", session);
 			logger.info("Received 'HELLO' request from user: {}", messageSender.getRealName());
 			return;
@@ -60,17 +79,38 @@ public class Conversation {
 
 	}
 
+	/**
+	 * Send the given message to the channel, but send a typing event to the channel first, add a delay, and then send the message.
+	 * @param channel
+	 * @param message
+	 * @param session
+	 */
 	private void simulateHumanStyleMessageSending(SlackChannel channel, String message, SlackSession session) {
-		// first generate a random "typing time between 1 and 3 seconds.
-		int randomTypingTime = ThreadLocalRandom.current().nextInt(1000, 3000 + 1);
+		SlackPreparedMessage slackPreparedMessage = new SlackPreparedMessage.Builder()
+			.withMessage(message)
+			.withUnfurl(false)
+			.build();
+		simulateHumanStyleMessageSending(channel, slackPreparedMessage, session);
+	}
+
+	/**
+	 * Send the given message to the channel, but send a typing event to the channel first, add a delay, and then send the message.
+	 * @param channel
+	 * @param message
+	 * @param session
+	 */
+	private void simulateHumanStyleMessageSending(SlackChannel channel, SlackPreparedMessage message, SlackSession session) {
+		// first generate a random "typing time between 600 and 1200 milliseconds.
+		int randomTypingTime = ThreadLocalRandom.current().nextInt(600, 1200 + 1);
 		// then take 0.025 seconds for each character in the message.  This will be added to the typing time.
-		int lengthBasedSplay = message.length() * 25;
+		int lengthBasedSplay = message.getMessage().length() * 25;
 
 		// Tell the channel MergeMinder is typing.
 		session.sendTyping(channel);
 		try {
 			Thread.sleep(randomTypingTime + lengthBasedSplay);
-		} catch (InterruptedException e) {
+		} catch (
+			InterruptedException e) {
 			// ignored
 		}
 		session.sendMessage(channel, message);

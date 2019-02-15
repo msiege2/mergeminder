@@ -77,6 +77,7 @@ public class SlackIntegration {
 
 	/**
 	 * Create notification(s) for this MR.
+	 *
 	 * @param mrInfo
 	 * @param reminderLength
 	 * @param userEmail
@@ -93,6 +94,7 @@ public class SlackIntegration {
 
 	/**
 	 * Send a message to the user about the merge request.
+	 *
 	 * @param mrInfo
 	 * @param reminderLength
 	 * @param userEmail
@@ -170,6 +172,7 @@ public class SlackIntegration {
 
 	/**
 	 * Save a user mapping
+	 *
 	 * @param user
 	 */
 	private void recordUserMapping(User user) {
@@ -181,6 +184,7 @@ public class SlackIntegration {
 
 	/**
 	 * Finds a slack user based on the data in the UserMapping table.
+	 *
 	 * @param userMapping
 	 * @return
 	 */
@@ -200,6 +204,7 @@ public class SlackIntegration {
 
 	/**
 	 * Sends a message to the configured notification channel about the merge status.
+	 *
 	 * @param mrInfo
 	 */
 	private void notifyChannelOfMergeInformation(MergeRequestAssignmentInfo mrInfo) {
@@ -226,6 +231,7 @@ public class SlackIntegration {
 
 	/**
 	 * Builds a section refering to the MR as "MR!xxxx" without a link.
+	 *
 	 * @param mr
 	 * @return
 	 */
@@ -235,6 +241,7 @@ public class SlackIntegration {
 
 	/**
 	 * Builds a section refering to the MR as "MR!xxxx" with optional link support.
+	 *
 	 * @param mr
 	 * @param suppressLink
 	 * @return
@@ -260,6 +267,7 @@ public class SlackIntegration {
 
 	/**
 	 * Ugh.  Brute force match parts of the user's gitlab name to their slack name.
+	 *
 	 * @param u
 	 * @return
 	 */
@@ -286,11 +294,12 @@ public class SlackIntegration {
 
 	/**
 	 * Guesses the first name of the user.
+	 *
 	 * @param u
 	 * @return
 	 */
 	private String getFirstName(User u) {
-		return (u == null || u.getName() == null) ? "Anonymous" : u.getName().substring(0, u.getName().indexOf(" ")).trim();
+		return (u == null || u.getName() == null) ? "Anonymous" : (u.getName() + " ").substring(0, (u.getName() + " ").indexOf(" ")).trim();
 	}
 
 	private List<String> guessEmails(User user) {

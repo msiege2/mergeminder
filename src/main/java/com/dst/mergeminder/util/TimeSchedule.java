@@ -10,8 +10,9 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+
+import com.dst.mergeminder.properties.MergeMinderProperties;
 
 @Configuration
 public class TimeSchedule {
@@ -21,15 +22,19 @@ public class TimeSchedule {
 
 	private DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mma");
 
-	@Value("${mergeminder.beginAlertHour:9}")
+	private final MergeMinderProperties mergeMinderProperties;
+
+	// Bean used variables -- pulled from properties object.
+
 	int beginAlertHour;
-	@Value("${mergeminder.endAlertHour:18}")
 	int endAlertHour;
-	@Value("${mergeminder.alertOnWeekends:false}")
 	boolean alertOnWeekends;
 
-	public TimeSchedule() {
-		// empty constructor
+	public TimeSchedule(MergeMinderProperties mergeMinderProperties) {
+		this.mergeMinderProperties = mergeMinderProperties;
+		this.beginAlertHour = this.mergeMinderProperties.getBeginAlertHour();
+		this.endAlertHour = this.mergeMinderProperties.getEndAlertHour();
+		this.alertOnWeekends = this.mergeMinderProperties.getAlertOnWeekends();
 	}
 
 	@PostConstruct

@@ -13,16 +13,17 @@ import org.gitlab4j.api.models.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.CollectionUtils;
 
 import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
 import com.dst.mergeminder.dto.MergeRequestModel;
 import com.dst.mergeminder.dto.MinderProjectsModel;
 import com.dst.mergeminder.gitlab.GitlabIntegration;
+import com.dst.mergeminder.properties.MergeMinderProperties;
 import com.dst.mergeminder.slack.SlackIntegration;
 import com.dst.mergeminder.util.TimeSchedule;
 
@@ -47,14 +48,10 @@ public class MergeMinder {
 	@Autowired
 	GitlabIntegration gitlabIntegration;
 
-	@Value("${mergeminder.schedule.bypass:false}")
-	private boolean bypassSchedule;
+	private final MergeMinderProperties mergeMinderProperties;
 
-	@Value("${mergeminder.emailDomains}")
-	private String emailDomains;
-
-	public MergeMinder() {
-		// empty constructor
+	public MergeMinder(MergeMinderProperties mergeMinderProperties) {
+		this.mergeMinderProperties = mergeMinderProperties;
 	}
 
 	@PostConstruct
@@ -69,7 +66,7 @@ public class MergeMinder {
 	public void mindMerges() {
 		logger.info("Running MergeMinder checks.");
 		logger.info("Current Eastern Time: {}", timeSchedule.currentEasternTime());
-		if (!bypassSchedule && !timeSchedule.shouldAlertNow()) {
+		if (!mergeMinderProperties.getScheduleBypass() && !timeSchedule.shouldAlertNow()) {
 			logger.info("Skipping checks during off hours.");
 			return;
 		}
@@ -114,7 +111,7 @@ public class MergeMinder {
 	 */
 	@Scheduled(cron = "0 0 * * * *")
 	public void mergePurge() {
-		if (!bypassSchedule && timeSchedule.shouldPurgeNow()) {
+		if (!mergeMinderProperties.getScheduleBypass() && timeSchedule.shouldPurgeNow()) {
 			doPurge();
 		}
 	}
@@ -139,6 +136,7 @@ public class MergeMinder {
 
 	/**
 	 * Returns a long of hours since the last assignment occurred.
+	 *
 	 * @param mrAssignedAt the date at which the MR was last assigned.
 	 * @return
 	 */
@@ -151,6 +149,7 @@ public class MergeMinder {
 
 	/**
 	 * Returns a long of hours since the last assignment occurred.
+	 *
 	 * @param mrAssignedAt Instant at whihc the MR was last assigned.
 	 * @return
 	 */
@@ -161,6 +160,7 @@ public class MergeMinder {
 	/**
 	 * Converts a user into the best guess email.  First checks the user object for a
 	 * specified email, then guesses it based upon <tt>fname.lname@emaildomain</tt>
+	 *
 	 * @param user
 	 * @return
 	 */
@@ -168,10 +168,9 @@ public class MergeMinder {
 		if (user == null) {
 			return null;
 		}
-		if (emailDomains != null) {
+		if (!CollectionUtils.isEmpty(mergeMinderProperties.getEmailDomains())) {
 			// email domains should be comma separated
-			String[] splitEmailDomains = emailDomains.split(",");
-			for (String emailDomain : splitEmailDomains) {
+			for (String emailDomain : mergeMinderProperties.getEmailDomains()) {
 				if (user.getEmail() != null && user.getEmail().endsWith(emailDomain)) {
 					return user.getEmail();
 				}

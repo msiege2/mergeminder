@@ -15,38 +15,37 @@ import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
+import com.dst.mergeminder.properties.GitlabProperties;
 
 @Configuration
 public class GitlabIntegration {
 
 	private Logger log = LoggerFactory.getLogger(GitlabIntegration.class);
 
-	@Value("${gitlab.accesstoken}")
-	private String gitLabToken;
-	@Value("${gitlab.url}")
-	private String gitLabUrl;
+	private final GitlabProperties gitlabProperties;
 
 	private GitLabApi gitLabApi;
 
-	public GitlabIntegration() {
+	public GitlabIntegration(GitlabProperties gitlabProperties) {
+		this.gitlabProperties = gitlabProperties;
 	}
 
 	@PostConstruct
 	private void init() throws GitLabApiException {
 		log.info("Connecting to GitLab.");
 		// Create a GitLabApi instance to communicate with your GitLab server
-		gitLabApi = new GitLabApi(gitLabUrl, gitLabToken);
+		gitLabApi = new GitLabApi(gitlabProperties.getUrl(), gitlabProperties.getAccesstoken());
 		gitLabApi.getVersion();
 		log.info("GitLab connection successful.");
 	}
 
 	/**
 	 * Goes to gitlab, scrapes open MRs, and creates a list of {@link MergeRequestAssignmentInfo} objects.
+	 *
 	 * @param namespace
 	 * @param projectName
 	 * @return
@@ -95,6 +94,7 @@ public class GitlabIntegration {
 
 	/**
 	 * Parse all the notes for the MR and return the most recent assignment.
+	 *
 	 * @param notes List of {@link Note}.  Assumes these are in descending order of create date.
 	 * @return Date at which the most recent assignment took place, or null if none was found.
 	 */

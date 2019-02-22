@@ -58,7 +58,7 @@ public class Conversation {
 		}
 		if (messageContent.toLowerCase().startsWith("thank you") || messageContent.toLowerCase().startsWith("thanks")) {
 			simulateHumanStyleMessageSending(channel, "You're welcome.", session);
-			logger.info("Received 'HELLO' request from user: {}", messageSender.getRealName());
+			logger.info("Received 'THANKS' request from user: {}", messageSender.getRealName());
 			return;
 		}
 		if (messageContent.toLowerCase().startsWith("hi") || messageContent.toLowerCase().startsWith("hello") || messageContent.toLowerCase().startsWith("hey")) {

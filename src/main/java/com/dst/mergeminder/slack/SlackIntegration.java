@@ -12,8 +12,8 @@ import org.gitlab4j.api.models.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.dst.mergeminder.MergeMinder;
@@ -21,6 +21,8 @@ import com.dst.mergeminder.ReminderLength;
 import com.dst.mergeminder.dao.MergeMinderDb;
 import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
 import com.dst.mergeminder.dto.UserMappingModel;
+import com.dst.mergeminder.properties.MergeMinderProperties;
+import com.dst.mergeminder.properties.SlackProperties;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackPreparedMessage;
 import com.ullink.slack.simpleslackapi.SlackSession;
@@ -38,32 +40,27 @@ public class SlackIntegration {
 	@Autowired
 	Conversation conversation;
 
-	@Value("${slack.botToken}")
-	private String slackToken;
-
-	@Value("${slack.notificationChannel:#{null}}")
-	private String slackNotificationChannel;
-	@Value("${slack.notifyUsers:false}")
-	private boolean notifyUsers;
-
-	@Value("${mergeminder.emailDomains}")
-	private String emailDomains;
-
+	/**
+	 * Object to store the properties related to slack behavior
+	 **/
+	private final MergeMinderProperties mergeMinderProperties;
+	private final SlackProperties slackProperties;
 	private SlackSession slackSession;
 
-	public SlackSession getSlackSession() {
-		return slackSession;
+	public SlackIntegration(MergeMinderProperties mergeMinderProperties, SlackProperties slackProperties) {
+		this.mergeMinderProperties = mergeMinderProperties;
+		this.slackProperties = slackProperties;
 	}
 
 	@PostConstruct
 	public void init() throws Exception {
-		SlackSession session = SlackSessionFactory.createWebSocketSlackSession(slackToken);
+		SlackSession session = SlackSessionFactory.createWebSocketSlackSession(slackProperties.getBotToken());
 		session.connect();
 		this.slackSession = session;
 		this.registerListener();
 		logger.info("Slack connection created.  Notification channel is {}.  User notification is {}",
-			slackNotificationChannel != null ? "ENABLED on channel #" + slackNotificationChannel : "DISABLED",
-			notifyUsers ? "ENABLED" : "DISABLED");
+			slackProperties.getNotificationChannel() != null ? "ENABLED on channel #" + slackProperties.getNotificationChannel() : "DISABLED",
+			slackProperties.getNotifyUsers() ? "ENABLED" : "DISABLED");
 	}
 
 	public void registerListener() {
@@ -75,6 +72,10 @@ public class SlackIntegration {
 		logger.info("Message listener registration complete.");
 	}
 
+	public SlackSession getSlackSession() {
+		return slackSession;
+	}
+
 	/**
 	 * Create notification(s) for this MR.
 	 *
@@ -84,10 +85,10 @@ public class SlackIntegration {
 	 */
 	public void notifyMergeRequest(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
 		// Always notify the channel
-		if (slackNotificationChannel != null) {
+		if (slackProperties.getNotificationChannel() != null) {
 			notifyChannelOfMergeInformation(mrInfo);
 		}
-		if (notifyUsers && reminderLength.shouldSendAlert()) {
+		if (slackProperties.getNotifyUsers() && reminderLength.shouldSendAlert()) {
 			notifyUser(mrInfo, reminderLength, userEmail);
 		}
 	}
@@ -221,11 +222,11 @@ public class SlackIntegration {
 			.withMessage(sb.toString())
 			.withUnfurl(false)
 			.build();
-		SlackChannel channel = slackSession.findChannelByName(slackNotificationChannel);
+		SlackChannel channel = slackSession.findChannelByName(slackProperties.getNotificationChannel());
 		if (channel != null) {
 			slackSession.sendMessage(channel, preparedMessage);
 		} else {
-			logger.warn("Could not send notifications to slack channel #{}", slackNotificationChannel);
+			logger.warn("Could not send notifications to slack channel #{}", slackProperties.getNotificationChannel());
 		}
 	}
 
@@ -303,13 +304,12 @@ public class SlackIntegration {
 	}
 
 	private List<String> guessEmails(User user) {
-		if (user == null || emailDomains == null) {
+		if (user == null || CollectionUtils.isEmpty(mergeMinderProperties.getEmailDomains())) {
 			return Collections.emptyList();
 		}
 		List<String> emailGuesses = new ArrayList<>();
 		// email domains should be comma separated
-		String[] splitEmailDomains = emailDomains.split(",");
-		for (String emailDomain : splitEmailDomains) {
+		for (String emailDomain : mergeMinderProperties.getEmailDomains()) {
 			emailGuesses.add(user.getName().toLowerCase().replaceAll("\\s", ".") + "@" + emailDomain);
 		}
 		return emailGuesses;

@@ -1,4 +1,4 @@
-package com.dst.mergeminder.rest;
+package com.mcs.mergeminder.rest;
 
 import java.util.List;
 
@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dst.mergeminder.MergeMinder;
-import com.dst.mergeminder.dao.MergeMinderDb;
-import com.dst.mergeminder.dto.MergeRequestModel;
-import com.dst.mergeminder.dto.MinderProjectsModel;
-import com.dst.mergeminder.dto.UserMappingModel;
+import com.mcs.mergeminder.MergeMinder;
+import com.mcs.mergeminder.dao.MergeMinderDb;
+import com.mcs.mergeminder.dto.MergeRequestModel;
+import com.mcs.mergeminder.dto.MinderProjectsModel;
+import com.mcs.mergeminder.dto.UserMappingModel;
 
 @RestController
 public class MergeController {

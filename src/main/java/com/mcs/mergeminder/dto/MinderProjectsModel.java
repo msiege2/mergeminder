@@ -1,4 +1,4 @@
-package com.dst.mergeminder.dto;
+package com.mcs.mergeminder.dto;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

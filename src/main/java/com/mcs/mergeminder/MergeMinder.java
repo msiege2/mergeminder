@@ -1,4 +1,4 @@
-package com.dst.mergeminder;
+package com.mcs.mergeminder;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -18,14 +18,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.CollectionUtils;
 
-import com.dst.mergeminder.dao.MergeMinderDb;
-import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
-import com.dst.mergeminder.dto.MergeRequestModel;
-import com.dst.mergeminder.dto.MinderProjectsModel;
-import com.dst.mergeminder.gitlab.GitlabIntegration;
-import com.dst.mergeminder.properties.MergeMinderProperties;
-import com.dst.mergeminder.slack.SlackIntegration;
-import com.dst.mergeminder.util.TimeSchedule;
+import com.mcs.mergeminder.dao.MergeMinderDb;
+import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
+import com.mcs.mergeminder.dto.MergeRequestModel;
+import com.mcs.mergeminder.dto.MinderProjectsModel;
+import com.mcs.mergeminder.gitlab.GitlabIntegration;
+import com.mcs.mergeminder.properties.MergeMinderProperties;
+import com.mcs.mergeminder.slack.SlackIntegration;
+import com.mcs.mergeminder.util.TimeSchedule;
 
 /**
  * MergeMinderBot!

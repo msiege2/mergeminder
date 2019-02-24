@@ -1,4 +1,4 @@
-package com.dst.mergeminder;
+package com.mcs.mergeminder;
 
 /**
  * Enum representing the time periods at which notifications are send.  Note, this

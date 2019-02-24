@@ -1,4 +1,4 @@
-package com.dst.mergeminder.exception;
+package com.mcs.mergeminder.exception;
 
 public class DatabaseUnavailableException extends Exception {
 

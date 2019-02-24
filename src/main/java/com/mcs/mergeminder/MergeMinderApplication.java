@@ -1,4 +1,4 @@
-package com.dst.mergeminder;
+package com.mcs.mergeminder;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,8 +1,8 @@
-package com.dst.mergeminder.dao;
+package com.mcs.mergeminder.dao;
 
 import org.springframework.data.repository.CrudRepository;
 
-import com.dst.mergeminder.dto.UserMappingModel;
+import com.mcs.mergeminder.dto.UserMappingModel;
 
 public interface UserMappingRepository extends CrudRepository<UserMappingModel, Integer> {
 

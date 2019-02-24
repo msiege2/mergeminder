@@ -1,4 +1,4 @@
-package com.dst.mergeminder.slack;
+package com.mcs.mergeminder.slack;
 
 import java.util.concurrent.ThreadLocalRandom;
 

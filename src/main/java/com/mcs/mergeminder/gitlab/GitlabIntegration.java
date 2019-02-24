@@ -1,4 +1,4 @@
-package com.dst.mergeminder.gitlab;
+package com.mcs.mergeminder.gitlab;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,8 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 
-import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
-import com.dst.mergeminder.properties.GitlabProperties;
+import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
+import com.mcs.mergeminder.properties.GitlabProperties;
 
 @Configuration
 public class GitlabIntegration {

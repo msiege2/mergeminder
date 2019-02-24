@@ -1,4 +1,4 @@
-package com.dst.mergeminder.slack;
+package com.mcs.mergeminder.slack;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,13 +16,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.dst.mergeminder.MergeMinder;
-import com.dst.mergeminder.ReminderLength;
-import com.dst.mergeminder.dao.MergeMinderDb;
-import com.dst.mergeminder.dto.MergeRequestAssignmentInfo;
-import com.dst.mergeminder.dto.UserMappingModel;
-import com.dst.mergeminder.properties.MergeMinderProperties;
-import com.dst.mergeminder.properties.SlackProperties;
+import com.mcs.mergeminder.MergeMinder;
+import com.mcs.mergeminder.ReminderLength;
+import com.mcs.mergeminder.dao.MergeMinderDb;
+import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
+import com.mcs.mergeminder.dto.UserMappingModel;
+import com.mcs.mergeminder.properties.MergeMinderProperties;
+import com.mcs.mergeminder.properties.SlackProperties;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackPreparedMessage;
 import com.ullink.slack.simpleslackapi.SlackSession;

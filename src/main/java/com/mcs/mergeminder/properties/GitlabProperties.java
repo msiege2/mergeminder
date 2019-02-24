@@ -1,4 +1,4 @@
-package com.dst.mergeminder.properties;
+package com.mcs.mergeminder.properties;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;

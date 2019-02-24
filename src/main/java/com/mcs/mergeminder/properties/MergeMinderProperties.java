@@ -1,4 +1,4 @@
-package com.dst.mergeminder.properties;
+package com.mcs.mergeminder.properties;
 
 import java.util.List;
 

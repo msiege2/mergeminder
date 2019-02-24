@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.client.RestTemplate;
 
-@SpringBootApplication(scanBasePackages = {"com.dst.mergeminder"})
+@SpringBootApplication(scanBasePackages = {"com.mcs.mergeminder"})
 @EnableAsync
 public class MergeMinderApplication {
 
@@ -17,7 +17,7 @@ public class MergeMinderApplication {
 
 	/**
 	 * Entry point of the application. Run this method to start MergeMinder with the component scan, but don't forget
-	 * to add the correct tokens in application.properties file.
+	 * to add the correct tokens in application.properties file or via the environment.
 	 *
 	 * @param args
 	 */

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +22,10 @@ import com.mcs.mergeminder.MergeMinder;
 import com.mcs.mergeminder.dao.MergeMinderDb;
 import com.mcs.mergeminder.dto.MergeRequestModel;
 import com.mcs.mergeminder.dto.MinderProjectsModel;
+import com.mcs.mergeminder.dto.SlackUserModel;
+import com.mcs.mergeminder.dto.SlackUserSearchCriteria;
 import com.mcs.mergeminder.dto.UserMappingModel;
+import com.mcs.mergeminder.slack.SlackIntegration;
 
 @RestController
 public class MergeController {
@@ -30,6 +34,9 @@ public class MergeController {
 	MergeMinder mergeMinder;
 	@Autowired
 	MergeMinderDb mergeMinderDb;
+	@Autowired
+	SlackIntegration slackIntegration;
+
 
 	/**
 	 * Kicks off the minding process.
@@ -155,7 +162,18 @@ public class MergeController {
 		existingUserMapping = mergeMinderDb.saveUserMapping(existingUserMapping);
 
 		return ResponseEntity.ok(existingUserMapping);
+	}
 
+	@PostMapping("/slack-users/search")
+	public ResponseEntity<List<SlackUserModel>> findSlackUsers(@RequestBody SlackUserSearchCriteria searchCriteria) {
+		if (searchCriteria.isEmptyCriteria()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+		List<SlackUserModel> matchingUsers = slackIntegration.searchSlackUsers(searchCriteria);
+		if (CollectionUtils.isEmpty(matchingUsers)) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
+		return ResponseEntity.ok(matchingUsers);
 	}
 
 	@Async

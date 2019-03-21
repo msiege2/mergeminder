@@ -3,6 +3,7 @@ package com.mcs.mergeminder.slack;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -20,6 +21,8 @@ import com.mcs.mergeminder.MergeMinder;
 import com.mcs.mergeminder.ReminderLength;
 import com.mcs.mergeminder.dao.MergeMinderDb;
 import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
+import com.mcs.mergeminder.dto.SlackUserModel;
+import com.mcs.mergeminder.dto.SlackUserSearchCriteria;
 import com.mcs.mergeminder.dto.UserMappingModel;
 import com.mcs.mergeminder.properties.MergeMinderProperties;
 import com.mcs.mergeminder.properties.SlackProperties;
@@ -293,6 +296,34 @@ public class SlackIntegration {
 		return null;
 	}
 
+	public List<SlackUserModel> searchSlackUsers(SlackUserSearchCriteria searchCriteria) {
+		Collection<SlackUser> slackUsers = slackSession.getUsers();
+		List<SlackUserModel> matchingUsers = new LinkedList<>();
+		for (SlackUser slackUser : slackUsers) {
+			if (!StringUtils.isEmpty(searchCriteria.getId())) {
+				if (StringUtils.isEmpty(slackUser.getId()) || !slackUser.getId().toLowerCase().contains(searchCriteria.getId().toLowerCase())) {
+					continue;
+				}
+			}
+			if (!StringUtils.isEmpty(searchCriteria.getRealName())) {
+				if (StringUtils.isEmpty(slackUser.getRealName()) || !slackUser.getRealName().toLowerCase().contains(searchCriteria.getRealName().toLowerCase())) {
+					continue;
+				}
+			}
+			if (!StringUtils.isEmpty(searchCriteria.getUsername())) {
+				if (StringUtils.isEmpty(slackUser.getUserName()) || !slackUser.getUserName().toLowerCase().contains(searchCriteria.getUsername().toLowerCase())) {
+					continue;
+				}
+			}
+			if (!StringUtils.isEmpty(searchCriteria.getEmail())) {
+				if (StringUtils.isEmpty(slackUser.getUserMail()) || !slackUser.getUserMail().toLowerCase().contains(searchCriteria.getEmail().toLowerCase())) {
+					continue;
+				}
+			}
+			matchingUsers.add(new SlackUserModel(slackUser));
+		}
+		return matchingUsers;
+	}
 	/**
 	 * Guesses the first name of the user.
 	 *

@@ -146,8 +146,10 @@ public class SlackIntegration {
 					buildMRNameSection(mrInfo.getMr(), Boolean.TRUE),
 					reminderLength);
 			} else {
-				if (reminderLength != ReminderLength.INITIAL_REMINDER) {
-					// The MR is assigned to the author.  Remind them.
+				// The MR is assigned to the author.  Remind them.  Skip the first reminder if it is brand new.
+				if (mrInfo.getLastAssignmentId() <= 0 && reminderLength == ReminderLength.INITIAL_REMINDER) {
+					logger.info("Skipping author assignment message at reminder time {}.", reminderLength);
+				} else {
 					messageForUser = reminderLength.getReminderForAuthor(getFirstName(mrInfo.getAssignee()),
 						buildMRNameSection(mrInfo.getMr()),
 						buildMRTitleSection(mrInfo.getMr()),
@@ -156,8 +158,6 @@ public class SlackIntegration {
 						mrInfo.getFullyQualifiedProjectName(),
 						buildMRNameSection(mrInfo.getMr(), Boolean.TRUE),
 						reminderLength);
-				} else {
-					logger.info("Skipping author assignment message at reminder time {}.", reminderLength);
 				}
 
 			}

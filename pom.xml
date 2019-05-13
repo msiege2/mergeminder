@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.4.RELEASE</version>
+        <version>2.2.0.M2</version>
         <relativePath/>
     </parent>
 
@@ -25,6 +25,13 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+    <repositories>
+    <repository> 
+        <id>repository.spring.milestone</id> 
+        <name>Spring Milestone Repository</name> 
+        <url>http://repo.spring.io/milestone</url> 
+    </repository>
+</repositories>
 
     <dependencies>
         <dependency>

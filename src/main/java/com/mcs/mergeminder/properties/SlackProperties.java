@@ -8,7 +8,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-@Component
+
 @PropertySource("classpath:slack.properties")
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "mm.slack")

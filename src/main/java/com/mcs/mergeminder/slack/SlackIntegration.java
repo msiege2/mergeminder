@@ -12,7 +12,6 @@ import org.gitlab4j.api.models.MergeRequest;
 import org.gitlab4j.api.models.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -38,10 +37,8 @@ public class SlackIntegration {
 
 	private static final Logger logger = LoggerFactory.getLogger(SlackIntegration.class);
 
-	@Autowired
-	MergeMinderDb mergeMinderDb;
-	@Autowired
-	Conversation conversation;
+	private final MergeMinderDb mergeMinderDb;
+	private final Conversation conversation;
 
 	/**
 	 * Object to store the properties related to slack behavior
@@ -50,7 +47,9 @@ public class SlackIntegration {
 	private final SlackProperties slackProperties;
 	private SlackSession slackSession;
 
-	public SlackIntegration(MergeMinderProperties mergeMinderProperties, SlackProperties slackProperties) {
+	public SlackIntegration(MergeMinderDb mergeMinderDb, Conversation conversation, MergeMinderProperties mergeMinderProperties, SlackProperties slackProperties) {
+		this.mergeMinderDb = mergeMinderDb;
+		this.conversation = conversation;
 		this.mergeMinderProperties = mergeMinderProperties;
 		this.slackProperties = slackProperties;
 	}
@@ -324,6 +323,7 @@ public class SlackIntegration {
 		}
 		return matchingUsers;
 	}
+
 	/**
 	 * Guesses the first name of the user.
 	 *

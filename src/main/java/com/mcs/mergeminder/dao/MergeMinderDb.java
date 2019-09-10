@@ -6,7 +6,6 @@ import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
 import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
@@ -19,12 +18,15 @@ public class MergeMinderDb {
 
 	private Logger log = LoggerFactory.getLogger(MergeMinderDb.class);
 
-	@Autowired
-	MinderProjectsRepository minderProjectsRepository;
-	@Autowired
-	MergeRequestRepository mergeRequestRepository;
-	@Autowired
-	UserMappingRepository userMappingRepository;
+	private final MinderProjectsRepository minderProjectsRepository;
+	private final MergeRequestRepository mergeRequestRepository;
+	private final UserMappingRepository userMappingRepository;
+
+	public MergeMinderDb(MinderProjectsRepository minderProjectsRepository, MergeRequestRepository mergeRequestRepository, UserMappingRepository userMappingRepository) {
+		this.minderProjectsRepository = minderProjectsRepository;
+		this.mergeRequestRepository = mergeRequestRepository;
+		this.userMappingRepository = userMappingRepository;
+	}
 
 	// Merge Request Models
 	////////////////////////
@@ -48,7 +50,6 @@ public class MergeMinderDb {
 	}
 
 	/**
-	 *
 	 * @param mrId the merge request id
 	 * @param lastAssignmentId
 	 * @return

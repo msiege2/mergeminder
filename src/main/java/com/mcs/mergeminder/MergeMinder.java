@@ -12,7 +12,6 @@ import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,18 +38,18 @@ public class MergeMinder {
 
 	private static final Logger logger = LoggerFactory.getLogger(MergeMinder.class);
 
-	@Autowired
-	TimeSchedule timeSchedule;
-	@Autowired
-	MergeMinderDb mergeMinderDb;
-	@Autowired
-	SlackIntegration slackIntegration;
-	@Autowired
-	GitlabIntegration gitlabIntegration;
-
+	private final TimeSchedule timeSchedule;
+	private final MergeMinderDb mergeMinderDb;
+	private final SlackIntegration slackIntegration;
+	private final GitlabIntegration gitlabIntegration;
 	private final MergeMinderProperties mergeMinderProperties;
 
-	public MergeMinder(MergeMinderProperties mergeMinderProperties) {
+	public MergeMinder(TimeSchedule timeSchedule, MergeMinderDb mergeMinderDb, SlackIntegration slackIntegration,
+		GitlabIntegration gitlabIntegration, MergeMinderProperties mergeMinderProperties) {
+		this.timeSchedule = timeSchedule;
+		this.mergeMinderDb = mergeMinderDb;
+		this.slackIntegration = slackIntegration;
+		this.gitlabIntegration = gitlabIntegration;
 		this.mergeMinderProperties = mergeMinderProperties;
 	}
 

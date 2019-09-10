@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.json.Json;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -30,16 +29,19 @@ import com.mcs.mergeminder.slack.SlackIntegration;
 @RestController
 public class MergeController {
 
-	@Autowired
-	MergeMinder mergeMinder;
-	@Autowired
-	MergeMinderDb mergeMinderDb;
-	@Autowired
-	SlackIntegration slackIntegration;
+	private final MergeMinder mergeMinder;
+	private final MergeMinderDb mergeMinderDb;
+	private final SlackIntegration slackIntegration;
 
+	public MergeController(MergeMinder mergeMinder, MergeMinderDb mergeMinderDb, SlackIntegration slackIntegration) {
+		this.mergeMinder = mergeMinder;
+		this.mergeMinderDb = mergeMinderDb;
+		this.slackIntegration = slackIntegration;
+	}
 
 	/**
 	 * Kicks off the minding process.
+	 *
 	 * @return
 	 */
 	@GetMapping("/mind")
@@ -54,6 +56,7 @@ public class MergeController {
 
 	/**
 	 * Kicks off the purge process.
+	 *
 	 * @return
 	 */
 	@GetMapping("/purge")
@@ -68,6 +71,7 @@ public class MergeController {
 
 	/**
 	 * Gets all the merges being tracked in the database.
+	 *
 	 * @return
 	 */
 	@GetMapping("/merges")
@@ -77,6 +81,7 @@ public class MergeController {
 
 	/**
 	 * Gets an individual merge being tracked.
+	 *
 	 * @param id
 	 * @return
 	 */
@@ -87,6 +92,7 @@ public class MergeController {
 
 	/**
 	 * Gets all the projects being tracked.
+	 *
 	 * @return
 	 */
 	@GetMapping("/projects")
@@ -96,6 +102,7 @@ public class MergeController {
 
 	/**
 	 * Adds a new project to be tracked.
+	 *
 	 * @return
 	 */
 	@PostMapping("/projects")
@@ -111,6 +118,7 @@ public class MergeController {
 
 	/**
 	 * Gets all the merges being tracked in the database.
+	 *
 	 * @return
 	 */
 	@DeleteMapping("/projects/{id}")
@@ -121,6 +129,7 @@ public class MergeController {
 
 	/**
 	 * Gets all the user mapping overrides.
+	 *
 	 * @return
 	 */
 	@GetMapping("/mappings")
@@ -130,6 +139,7 @@ public class MergeController {
 
 	/**
 	 * Creates a user mapping override
+	 *
 	 * @param newUserMapping
 	 * @return
 	 */
@@ -147,6 +157,7 @@ public class MergeController {
 
 	/**
 	 * Updates a user mapping override.
+	 *
 	 * @param id
 	 * @param newUserMapping
 	 * @return

@@ -26,6 +26,8 @@ import com.mcs.mergeminder.dto.SlackUserSearchCriteria;
 import com.mcs.mergeminder.dto.UserMappingModel;
 import com.mcs.mergeminder.slack.SlackIntegration;
 
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class MergeController {
 
@@ -44,6 +46,7 @@ public class MergeController {
 	 *
 	 * @return
 	 */
+	@ApiOperation("Kicks off the minding process immediately, instead of waiting for the timer to run.")
 	@GetMapping("/mind")
 	public ResponseEntity<String> mind() {
 		kickoffMind();
@@ -59,6 +62,7 @@ public class MergeController {
 	 *
 	 * @return
 	 */
+	@ApiOperation("Kicks off the MergePurge(TM) process immediately, instead of waiting for the timer to run.")
 	@GetMapping("/purge")
 	public ResponseEntity<String> purge() {
 		kickoffPurge();
@@ -74,6 +78,7 @@ public class MergeController {
 	 *
 	 * @return
 	 */
+	@ApiOperation("Gets all the merges being tracked in the database.")
 	@GetMapping("/merges")
 	public List<MergeRequestModel> getAllMerges() {
 		return mergeMinderDb.getAllMergeRequestModels();
@@ -85,6 +90,7 @@ public class MergeController {
 	 * @param id
 	 * @return
 	 */
+	@ApiOperation("Gets an individual merge being tracked.")
 	@GetMapping("/merges/{id}")
 	public MergeRequestModel getMerge(@PathVariable Integer id) {
 		return mergeMinderDb.getMergeRequestModel(id);
@@ -95,6 +101,7 @@ public class MergeController {
 	 *
 	 * @return
 	 */
+	@ApiOperation("Gets all of the Gitlab projects being tracked by MergeMinder.")
 	@GetMapping("/projects")
 	public List<MinderProjectsModel> getAllProjects() {
 		return mergeMinderDb.getMinderProjects();
@@ -105,6 +112,7 @@ public class MergeController {
 	 *
 	 * @return
 	 */
+	@ApiOperation("Adds a new Gitlab project to MergeMinder to be tracked.")
 	@PostMapping("/projects")
 	public ResponseEntity<MinderProjectsModel> createProject(@RequestBody MinderProjectsModel newProject) {
 		if (newProject == null) {
@@ -117,10 +125,11 @@ public class MergeController {
 	}
 
 	/**
-	 * Gets all the merges being tracked in the database.
+	 * Removes a project being tracked in the database.
 	 *
 	 * @return
 	 */
+	@ApiOperation("Removes a Gitlab project being tracked by MergeMinder.")
 	@DeleteMapping("/projects/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deleteProject(@PathVariable Integer id) {
@@ -132,6 +141,7 @@ public class MergeController {
 	 *
 	 * @return
 	 */
+	@ApiOperation("Lists all of the user mapping overrides between Gitlab and Slack.")
 	@GetMapping("/mappings")
 	public List<UserMappingModel> getAllUserMappings() {
 		return mergeMinderDb.getAllUserMappings();
@@ -143,6 +153,7 @@ public class MergeController {
 	 * @param newUserMapping
 	 * @return
 	 */
+	@ApiOperation("Creates a user mapping override between Gitlab and Slack.")
 	@PostMapping("/mappings")
 	public ResponseEntity<UserMappingModel> createUserMapping(@RequestBody UserMappingModel newUserMapping) {
 		UserMappingModel existingUserMapping = mergeMinderDb.getUserMappingByGitlabUsername(newUserMapping.getGitlabUsername());
@@ -162,6 +173,7 @@ public class MergeController {
 	 * @param newUserMapping
 	 * @return
 	 */
+	@ApiOperation("Replaces an existing user mapping override between Gitlab and Slack.")
 	@PutMapping("/mappings/{id}")
 	public ResponseEntity<UserMappingModel> updateUserMapping(@PathVariable Integer id, @RequestBody UserMappingModel newUserMapping) {
 		UserMappingModel existingUserMapping = mergeMinderDb.getUserMappingById(id);

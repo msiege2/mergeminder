@@ -83,13 +83,16 @@
             <artifactId>simpleslackapi</artifactId>
             <version>1.2.0</version>
         </dependency>
-        <!-- Will replace simpleslackapi with jslack in the near future
         <dependency>
-            <groupId>com.github.seratch</groupId>
-            <artifactId>jslack</artifactId>
-            <version>2.1.3</version>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.9.2</version>
         </dependency>
-        -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.9.2</version>
+        </dependency>
         <!-- JSON-B Support (javax.json.*) -->
         <dependency>
             <groupId>javax.json</groupId>

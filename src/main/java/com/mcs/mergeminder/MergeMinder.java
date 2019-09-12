@@ -21,6 +21,7 @@ import com.mcs.mergeminder.dao.MergeMinderDb;
 import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
 import com.mcs.mergeminder.dto.MergeRequestModel;
 import com.mcs.mergeminder.dto.MinderProjectsModel;
+import com.mcs.mergeminder.exception.GitlabIntegrationException;
 import com.mcs.mergeminder.gitlab.GitlabIntegration;
 import com.mcs.mergeminder.properties.MergeMinderProperties;
 import com.mcs.mergeminder.slack.SlackIntegration;
@@ -126,7 +127,7 @@ public class MergeMinder {
 					mergeMinderDb.removeMergeRequestModel(merge);
 					purgeCount++;
 				}
-			} catch (GitLabApiException e) {
+			} catch (GitlabIntegrationException e) {
 				logger.error("Problem with GitLab integration.", e);
 			}
 		}

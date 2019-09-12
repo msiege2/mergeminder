@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 
 import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
+import com.mcs.mergeminder.exception.GitlabIntegrationException;
 import com.mcs.mergeminder.properties.GitlabProperties;
 
 @Configuration
@@ -80,15 +81,25 @@ public class GitlabIntegration {
 		return assignmentInfoList;
 	}
 
-	public boolean isMergeRequestMergedOrClosed(String fullyQualifiedProjectName, Integer mrId) throws GitLabApiException {
+	public boolean isMergeRequestMergedOrClosed(String fullyQualifiedProjectName, Integer mrId) throws GitlabIntegrationException {
 		if (fullyQualifiedProjectName == null || mrId == null) {
 			return false;
 		}
-		MergeRequest mr = gitLabApi.getMergeRequestApi().getMergeRequest(fullyQualifiedProjectName, mrId);
-		if (Constants.MergeRequestState.CLOSED.toString().equals(mr.getState()) ||
-			Constants.MergeRequestState.MERGED.toString().equals(mr.getState())) {
-			return true;
+		log.debug("Looking up MR: [{}] MR id: {}", fullyQualifiedProjectName, mrId);
+		try {
+			MergeRequest mr = gitLabApi.getMergeRequestApi().getMergeRequest(fullyQualifiedProjectName, mrId);
+			if (Constants.MergeRequestState.CLOSED.toString().equals(mr.getState()) ||
+				Constants.MergeRequestState.MERGED.toString().equals(mr.getState())) {
+				return true;
+			}
+		} catch (GitLabApiException ex) {
+			if (ex.getHttpStatus() == 404) {
+				log.debug("Cannot find this merge request.  Assuming it no longer exists!");
+				return true;
+			}
+			throw new GitlabIntegrationException("Problem looking up merge request.");
 		}
+
 		return false;
 	}
 

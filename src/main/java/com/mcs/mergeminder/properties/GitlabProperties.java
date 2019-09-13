@@ -6,11 +6,9 @@ import javax.validation.constraints.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
-
-@PropertySource("classpath:gitlab.properties")
+@PropertySource({"classpath:gitlab.properties", "classpath:gitlab-${spring.profiles.active}.properties"})
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "mm.gitlab")
 @Validated

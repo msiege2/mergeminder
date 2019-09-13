@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -56,7 +57,11 @@ public class SlackIntegration {
 
 	@PostConstruct
 	public void init() throws Exception {
-		SlackSession session = SlackSessionFactory.createWebSocketSlackSession(slackProperties.getBotToken());
+		SlackSession session = SlackSessionFactory
+			.getSlackSessionBuilder(slackProperties.getBotToken())
+			.withAutoreconnectOnDisconnection(true)
+			.withConnectionHeartbeat(15, TimeUnit.SECONDS)
+			.build();
 		session.connect();
 		this.slackSession = session;
 		this.registerListener();

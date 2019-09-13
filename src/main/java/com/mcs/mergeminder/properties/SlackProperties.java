@@ -4,10 +4,8 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.validation.annotation.Validated;
 
-@PropertySource({"classpath:slack.properties", "classpath:slack-${spring.profiles.active}.properties"})
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "mm.slack")
 @Validated

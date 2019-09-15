@@ -4,9 +4,7 @@ import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
-
 
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "mm")
@@ -19,6 +17,7 @@ public class MergeMinderProperties {
 	private int beginAlertHour = 9;
 	private int endAlertHour = 18;
 	private Boolean alertOnWeekends = false;
+	private List<String> adminEmails = null;
 
 	public String getApplicationVersion() {
 		return applicationVersion;
@@ -66,5 +65,13 @@ public class MergeMinderProperties {
 
 	public void setAlertOnWeekends(Boolean alertOnWeekends) {
 		this.alertOnWeekends = alertOnWeekends;
+	}
+
+	public List<String> getAdminEmails() {
+		return adminEmails;
+	}
+
+	public void setAdminEmails(List<String> adminEmails) {
+		this.adminEmails = adminEmails;
 	}
 }

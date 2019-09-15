@@ -39,7 +39,7 @@ public class SlackIntegration {
 	private static final Logger logger = LoggerFactory.getLogger(SlackIntegration.class);
 
 	private final MergeMinderDb mergeMinderDb;
-	private final Conversation conversation;
+	private final ConversationListener conversationListener;
 
 	/**
 	 * Object to store the properties related to slack behavior
@@ -48,9 +48,9 @@ public class SlackIntegration {
 	private final SlackProperties slackProperties;
 	private SlackSession slackSession;
 
-	public SlackIntegration(MergeMinderDb mergeMinderDb, Conversation conversation, MergeMinderProperties mergeMinderProperties, SlackProperties slackProperties) {
+	public SlackIntegration(MergeMinderDb mergeMinderDb, ConversationListener conversationListener, MergeMinderProperties mergeMinderProperties, SlackProperties slackProperties) {
 		this.mergeMinderDb = mergeMinderDb;
-		this.conversation = conversation;
+		this.conversationListener = conversationListener;
 		this.mergeMinderProperties = mergeMinderProperties;
 		this.slackProperties = slackProperties;
 	}
@@ -73,7 +73,7 @@ public class SlackIntegration {
 	public void registerListener() {
 		logger.info("Registering Slack message listener for conversational functionality.");
 		// first define the listener
-		SlackMessagePostedListener messagePostedListener = (event, session) -> conversation.handleIncomingEvent(event, session);
+		SlackMessagePostedListener messagePostedListener = (event, session) -> conversationListener.handleIncomingEvent(event, session);
 		//add it to the session
 		slackSession.addMessagePostedListener(messagePostedListener);
 		logger.info("Message listener registration complete.");

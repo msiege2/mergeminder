@@ -68,6 +68,7 @@ public class SlackIntegration {
 		logger.info("Slack connection created.  Notification channel is {}.  User notification is {}",
 			slackProperties.getNotificationChannel() != null ? "ENABLED on channel #" + slackProperties.getNotificationChannel() : "DISABLED",
 			slackProperties.getNotifyUsers() ? "ENABLED" : "DISABLED");
+		logger.info("Admin users: {}", StringUtils.collectionToCommaDelimitedString(mergeMinderProperties.getAdminEmails()));
 	}
 
 	public void registerListener() {

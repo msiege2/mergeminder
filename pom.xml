@@ -23,6 +23,7 @@
         <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        <dockerfile.maven.version>1.4.12</dockerfile.maven.version>
     </properties>
     <!-- Add Spring repositories -->
     <!-- (you don't need this if you are using a .RELEASE version) -->
@@ -30,7 +31,9 @@
         <repository>
             <id>spring-snapshots</id>
             <url>https://repo.spring.io/snapshot</url>
-            <snapshots><enabled>true</enabled></snapshots>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>spring-milestones</id>
@@ -136,7 +139,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <configuration>
-                    <skip>false</skip>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
             <plugin>
@@ -144,7 +147,33 @@
                 <artifactId>versions-maven-plugin</artifactId>
                 <version>2.7</version>
                 <configuration>
-                     <generateBackupPoms>false</generateBackupPoms>
+                    <generateBackupPoms>false</generateBackupPoms>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <file>target/classes/banner.txt</file>
+                    <replacements>
+                        <replacement>
+                            <token>application.title</token>
+                            <value>${artifactId}</value>
+                        </replacement>
+                        <replacement>
+                            <token>application.version</token>
+                            <value>${version}</value>
+                        </replacement>
+                    </replacements>
                 </configuration>
             </plugin>
             <plugin>
@@ -159,7 +188,7 @@
                         </goals>
                         <configuration>
                             <rules>
-                            	<bannedPlugins>
+                                <bannedPlugins>
                                     <!-- will only display a warning but does not fail the build. -->
                                     <level>WARN</level>
                                     <excludes>
@@ -173,40 +202,32 @@
                                 <requireJavaVersion>
                                     <version>11</version>
                                 </requireJavaVersion>
-                            </rules>    
+                            </rules>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.31.0</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <verbose>true</verbose>
-                    <images>
-                        <image>
-                            <name>${project.artifactId}:${project.version}</name>
-                            <build>
-                                <tags>
-                                    <tag>${project.version}</tag>
-                                    <tag>latest</tag>
-                                </tags>
-                                <dockerFileDir>${project.basedir}</dockerFileDir>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>1.6.1</version>
                 <executions>
                     <execution>
-                        <id>build</id>
-                        <phase>post-integration-test</phase>
+                        <phase>deploy</phase>
                         <goals>
                             <goal>build</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <to>
+                        <image>docker.io/msiege2/mergeminder</image>
+                        <tags>
+                            <tag>${project.version}</tag>
+                            <tag>latest</tag>
+                        </tags>
+                    </to>
+                </configuration>
             </plugin>
         </plugins>
     </build>

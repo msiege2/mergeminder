@@ -24,8 +24,7 @@ In order to run MergeMinder, you will need to provide a series of properties to 
 | `mm.slack.bottoken`            | API token for MergeMinder Slack bot | `xoxb-abcdefg12345678` |
 | `spring.datasource.url`        | JDBC URL for the MergeMinder DB | `jdbc:mysql://db.com:3306/MergeMinder` |
 | `spring.datasource.username`   | Username for the MergeMinder DB | `myUser` |
-| `spring.datasource.password`   | Password for the MergeMinder DB | `myPassword` 
- 
+| `spring.datasource.password`   | Password for the MergeMinder DB | `myPassword` | 
 #### Optional Parameters
 
 | Property Name                  | Descrption     | Example             |

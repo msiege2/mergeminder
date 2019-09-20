@@ -15,17 +15,6 @@ MergeMinder is a service that scrapes Gitlab projects for open merge requests an
 
 In order to run MergeMinder, you will need to provide a series of properties to the application.
 
-## Running MergeMinder:
-
-The easiest way to run MergeMinder is by running the pre-built docker container.  This is available through the Docker Hub registry.  If you have docker running on your host, simply run: 
-
-    `docker pull msiege2/mergeminder`
-
-This will pull the latest docker image from the container registry.  After pulling the latest image, run with with:
-
-    `docker run msiege2/mergeminder`
-
-This will start the container, however, out of the box there are several properties that should be set before MergeMinder will function properly.  They are summarized below: 
 #### Required Parameters
  
 | Property Name                  | Descrption     | Example             |
@@ -45,3 +34,17 @@ This will start the container, however, out of the box there are several propert
 | `mm.slack.notifyusers`         | Determines if user should be sent DMs or not (default: false)  | `true` or `false`|
 | `mm.emaildomains`              | Comma separated list of domains to use to look up gitlab users in Slack | `mydomain.com` |
 | `mm.adminemails`               | Comma separated list of Slack user's emails who are allowed to use admin functionality | `user@domain.com` |
+
+## Running MergeMinder:
+
+The easiest way to run MergeMinder is by running the pre-built docker container.  This is available through the Docker Hub registry.  If you have docker running on your host, simply run: 
+
+    `docker pull msiege2/mergeminder`
+
+This will pull the latest docker image from the container registry.  After pulling the latest image, run with with:
+
+    `docker run msiege2/mergeminder`
+
+This will start the container.  In order to pass parameters into the application, it is recommended to pass them as environment parameters.  Pass them using the `-e` parameter on the docker command line.  Because MergeMinder uses Spring Boot, it recognizes property names using the relaxed binding rules defined in the Spring Boot documentation at [Spring Boot External Config Doc](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html#boot-features-external-config-relaxed-binding).  For example:
+
+    `docker run -e 'MM_GITLAB_URL=http://my.gitlab.com' msiege2/mergeminder`

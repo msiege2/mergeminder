@@ -33,6 +33,9 @@ In order to run MergeMinder, you will need to provide a series of properties to 
 | `mm.slack.notifyusers`         | Determines if user should be sent DMs or not (default: false)  | `true` or `false`|
 | `mm.emaildomains`              | Comma separated list of domains to use to look up gitlab users in Slack | `mydomain.com` |
 | `mm.adminemails`               | Comma separated list of Slack user's emails who are allowed to use admin functionality | `user@domain.com` |
+| `mm.slack.notifyusers`         | Determines if user should be sent DMs or not (default: false)  | `true` or `false`|
+| `mm.emaildomains`              | Comma separated list of domains to use to look up gitlab users in Slack | `mydomain.com` |
+| `mm.adminemails`               | Comma separated list of Slack user's emails who are allowed to use admin functionality | `user@domain.com` |
 
 ## Running MergeMinder:
 

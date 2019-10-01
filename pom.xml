@@ -167,11 +167,11 @@
                     <replacements>
                         <replacement>
                             <token>application.title</token>
-                            <value>${artifactId}</value>
+                            <value>${project.artifactId}</value>
                         </replacement>
                         <replacement>
                             <token>application.version</token>
-                            <value>${version}</value>
+                            <value>${project.version}</value>
                         </replacement>
                     </replacements>
                 </configuration>

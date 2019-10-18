@@ -1,11 +1,12 @@
 package com.mcs.mergeminder.properties;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import java.util.List;
 
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "mm.gitlab")
@@ -21,6 +22,8 @@ public class GitlabProperties {
 	@NotNull
 	private String accesstoken;
 
+	private List<String> ignoredByLabels;
+
 	public String getUrl() {
 		return url;
 	}
@@ -35,5 +38,13 @@ public class GitlabProperties {
 
 	public void setAccesstoken(String accesstoken) {
 		this.accesstoken = accesstoken;
+	}
+
+	public List<String> getIgnoredByLabels() {
+		return ignoredByLabels;
+	}
+
+	public void setIgnoredByLabels(List<String> ignoredByLabels) {
+		this.ignoredByLabels = ignoredByLabels;
 	}
 }

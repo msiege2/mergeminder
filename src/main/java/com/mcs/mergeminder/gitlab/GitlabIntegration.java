@@ -1,11 +1,9 @@
 package com.mcs.mergeminder.gitlab;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-
+import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
+import com.mcs.mergeminder.exception.GitlabIntegrationException;
+import com.mcs.mergeminder.properties.GitlabProperties;
+import org.apache.commons.lang3.StringUtils;
 import org.gitlab4j.api.Constants;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
@@ -18,9 +16,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 
-import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
-import com.mcs.mergeminder.exception.GitlabIntegrationException;
-import com.mcs.mergeminder.properties.GitlabProperties;
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @Configuration
 public class GitlabIntegration {
@@ -65,6 +65,10 @@ public class GitlabIntegration {
 		for (MergeRequest mr : mergeRequests) {
 			String title = mr.getTitle();
 			Integer mrId = mr.getIid();
+			if (ignoreMergeRequest(mr)) {
+				log.debug("MR!{}: {} ignored because it contains label that's ignored ( mm.gitlab.ignoredByLabels )", mrId, title);
+				continue;
+			}
 			log.debug("MR!{}: {}", mrId, title);
 			// Assignment events are in "notes"
 			List<Note> notes = gitLabApi.getNotesApi().getMergeRequestNotes(project.getId(), mr.getIid(), Constants.SortOrder.DESC, Note.OrderBy.CREATED_AT);
@@ -101,6 +105,24 @@ public class GitlabIntegration {
 		}
 
 		return false;
+	}
+
+	private boolean ignoreMergeRequest(MergeRequest mergeRequest) {
+		List<String> mergeRequestLabels = Optional.ofNullable(mergeRequest.getLabels()).orElse(List.of());
+		boolean ignoreMergeRequest = false;
+		for (String label : mergeRequestLabels) {
+			ignoreMergeRequest = Optional.ofNullable(gitlabProperties.getIgnoredByLabels()).orElse(List.of())
+					.stream()
+					.filter(ignoreByLabel -> StringUtils.equalsIgnoreCase(StringUtils.trim(ignoreByLabel), StringUtils.trim(label)))
+					.map(match -> true)
+					.findAny()
+					.orElse(false);
+			if (ignoreMergeRequest) {
+				break;
+			}
+		}
+
+		return ignoreMergeRequest;
 	}
 
 	/**

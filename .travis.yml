@@ -5,7 +5,7 @@ before_deploy:
 
 deploy:
   provider: script
-  script: mvn deploy
+  script: mvn deploy -B -DskipTests=true
   on:
     branch: master
 

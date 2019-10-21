@@ -235,9 +235,8 @@
                 </executions>
                 <configuration>
                     <to>
-                        <image>docker.io/msiege2/mergeminder</image>
+                        <image>docker.io/msiege2/mergeminder:${project.version}</image>
                         <tags>
-                            <tag>${project.version}</tag>
                             <tag>latest-snapshot</tag>
                         </tags>
                     </to>

@@ -1,1 +1,14 @@
 language: java
+
+before_deploy:
+  - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+
+deploy:
+  provider: script
+  script: mvn deploy
+  on:
+    branch: master
+
+cache:
+  directories:
+    - $HOME/.m2

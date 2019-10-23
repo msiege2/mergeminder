@@ -1,6 +1,6 @@
 # MergeMinder
 [![Build Status](https://travis-ci.org/msiege2/mergeminder.svg?branch=master)](https://travis-ci.org/msiege2)
-[![Dev Version](https://pom-version-badge.glitch.me/msiege2/mergeminder/master)](https://travis-ci.org/msiege2)
+![Dev Version](https://pom-version-badge.glitch.me/msiege2/mergeminder)
 [![HitCount](http://hits.dwyl.io/msiege2/mergeminder.svg)](http://hits.dwyl.io/msiege2/mergeminder)
 
 MergeMinder is a service that scrapes Gitlab projects for open merge requests and sends increasingly hostile Slack messages to users as they sit open.

@@ -21,6 +21,11 @@ public class MinderProjectsModel {
 		// empty constructor
 	}
 
+	public MinderProjectsModel(String namespace, String project) {
+		this.namespace = namespace;
+		this.project = project;
+	}
+
 	public Integer getId() {
 		return id;
 	}

@@ -121,6 +121,17 @@ public class ConversationListener implements SlackMessageSender {
 			return;
 		}
 
+		// Add project message
+		if (messageContent.toLowerCase().startsWith("add project")) {
+			if (!isUserAdmin(messageSender)) {
+				simulateHumanStyleMessageSending(channel, "Sorry!  You must be an admin to perform this function.", session);
+			} else {
+				startAddProjectConversation(channel, messageSender, session);
+			}
+			logger.info("Received 'ADD PROJECT' request from user: {}", messageSender.getRealName());
+			return;
+		}
+
 		// View mappings
 		if (messageContent.toLowerCase().startsWith("view mappings")) {
 			if (!isUserAdmin(messageSender)) {
@@ -136,8 +147,8 @@ public class ConversationListener implements SlackMessageSender {
 		///////////////////////////
 
 		if (messageContent.toLowerCase().startsWith("help")) {
-			simulateHumanStyleMessageSending(channel, "The following slack commands are supported for administrators:", session);
-			session.sendMessage(channel, "Project Administration Commands:");
+			simulateHumanStyleMessageSending(channel, "The following slack commands are supported:", session);
+			session.sendMessage(channel, "Project Related Commands:");
 			session.sendMessage(channel, " - view projects [namespace]");
 			logger.info("Received 'HELP' request from user: {}", messageSender.getRealName());
 			return;
@@ -184,6 +195,17 @@ public class ConversationListener implements SlackMessageSender {
 	 */
 	private void startSetUnmappedUserConversation(SlackChannel channel, SlackUser messageSender, SlackSession session) {
 		Conversation conversation = new SetUnmappedUserConversation(mergeMinderDb);
+		activeConversations.put(messageSender.getId(), conversation);
+
+		try {
+			conversation.start(channel, messageSender, session, null);
+		} catch (ConversationException e) {
+			sendOops(channel, messageSender, session);
+		}
+	}
+
+	private void startAddProjectConversation(SlackChannel channel, SlackUser messageSender, SlackSession session) {
+		Conversation conversation = new AddProjectConversation(mergeMinderDb);
 		activeConversations.put(messageSender.getId(), conversation);
 
 		try {

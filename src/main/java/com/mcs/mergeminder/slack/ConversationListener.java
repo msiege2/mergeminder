@@ -11,6 +11,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.mcs.mergeminder.dao.MergeMinderDb;
+import com.mcs.mergeminder.dto.MinderProjectsModel;
 import com.mcs.mergeminder.dto.UserMappingModel;
 import com.mcs.mergeminder.exception.ConversationException;
 import com.mcs.mergeminder.properties.MergeMinderProperties;
@@ -88,15 +89,22 @@ public class ConversationListener implements SlackMessageSender {
 			return;
 		}
 
+		// Admin Functionality
+		///////////////////////
+
 		// Admin Help message
 		if (messageContent.toLowerCase().startsWith("admin help") || messageContent.toLowerCase().startsWith("help admin")) {
 			if (!isUserAdmin(messageSender)) {
 				simulateHumanStyleMessageSending(channel, "Sorry!  You must be an admin to perform this function.", session);
 			} else {
 				simulateHumanStyleMessageSending(channel, "The following commands are supported for administrators:", session);
+				session.sendMessage(channel, "User Mapping Commands:");
 				session.sendMessage(channel, " - set unmapped");
 				session.sendMessage(channel, " - view mappings");
-
+				session.sendMessage(channel, "Project Administration Commands:");
+				session.sendMessage(channel, " - view projects [namespace]");
+				session.sendMessage(channel, " - add project");
+				session.sendMessage(channel, " - remove project");
 			}
 			logger.info("Received 'ADMIN HELP' request from user: {}", messageSender.getRealName());
 			return;
@@ -124,9 +132,23 @@ public class ConversationListener implements SlackMessageSender {
 			return;
 		}
 
+		// Non-Admin Functionality
+		///////////////////////////
+
 		if (messageContent.toLowerCase().startsWith("help")) {
-			simulateHumanStyleMessageSending(channel, "I'm alive!  Soon I'll be able to help you to understand some of the things I can do.", session);
+			simulateHumanStyleMessageSending(channel, "The following slack commands are supported for administrators:", session);
+			session.sendMessage(channel, "Project Administration Commands:");
+			session.sendMessage(channel, " - view projects [namespace]");
 			logger.info("Received 'HELP' request from user: {}", messageSender.getRealName());
+			return;
+		}
+
+		// View Projects
+		if (messageContent.toLowerCase().startsWith("view projects")) {
+			String parameterContent = messageContent.toLowerCase().substring("view projects".length());
+			viewProjects(channel, messageSender, session, parameterContent != null && !parameterContent.trim().isBlank() ? parameterContent.trim() : null);
+
+			logger.info("Received 'VIEW PROJECTS' request from user: {}", messageSender.getRealName());
 			return;
 		}
 
@@ -192,6 +214,37 @@ public class ConversationListener implements SlackMessageSender {
 				message.append("*  |  *");
 				message.append(model.getSlackEmail() == null ? "[UNKNOWN]" : model.getSlackEmail());
 				message.append("* ]");
+				session.sendMessage(channel, message.toString());
+			}
+		} catch (ConversationException e) {
+			sendOops(channel, messageSender, session);
+		}
+	}
+
+	private void viewProjects(SlackChannel channel, SlackUser messageSender, SlackSession session, String namespace) {
+		try {
+			List<MinderProjectsModel> projectList = (namespace == null)
+				? mergeMinderDb.getMinderProjects() : mergeMinderDb.getMinderProjectsForNamespace(namespace);
+			if (projectList == null) {
+				throw new ConversationException("Could not load project list.");
+			}
+			if (projectList.isEmpty()) {
+				simulateHumanStyleMessageSending(channel, "I could not find any Gitlab projects that have MergeMinding enabled"
+					+ (namespace != null ? " for namespace " + namespace : "") + ":", session);
+			} else {
+				simulateHumanStyleMessageSending(channel, "Here are the Gitlab projects that have MergeMinding enabled"
+					+ (namespace != null ? " for namespace " + namespace : "") + ":", session);
+				StringBuilder message = new StringBuilder();
+				for (int i = 0; i < projectList.size(); i++) {
+					MinderProjectsModel model = projectList.get(i);
+					message.append(i + 1);
+
+					message.append(".\t[");
+					message.append(model.getNamespace());
+					message.append("/");
+					message.append(model.getProject());
+					message.append("]\n");
+				}
 				session.sendMessage(channel, message.toString());
 			}
 		} catch (ConversationException e) {

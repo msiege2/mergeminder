@@ -66,7 +66,11 @@ public class MergeMinderDb {
 	// Project Models
 	//////////////////
 	public List<MinderProjectsModel> getMinderProjects() {
-		return StreamSupport.stream(minderProjectsRepository.findAll().spliterator(), false).collect(Collectors.toList());
+		return StreamSupport.stream(minderProjectsRepository.findAllByOrderByNamespaceAscProjectAsc().spliterator(), false).collect(Collectors.toList());
+	}
+
+	public List<MinderProjectsModel> getMinderProjectsForNamespace(String namespace) {
+		return StreamSupport.stream(minderProjectsRepository.findByNamespaceOrderByProject(namespace).spliterator(), false).collect(Collectors.toList());
 	}
 
 	public MinderProjectsModel saveMinderProject(MinderProjectsModel project) {

@@ -1,4 +1,4 @@
-package com.mcs.mergeminder.slack;
+package com.mcs.mergeminder.slack.conversations;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -10,35 +10,27 @@ import org.springframework.util.CollectionUtils;
 import com.mcs.mergeminder.dao.MergeMinderDb;
 import com.mcs.mergeminder.dto.UserMappingModel;
 import com.mcs.mergeminder.exception.ConversationException;
+import com.mcs.mergeminder.slack.ExtendedConversation;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
 
-public class SetUnmappedUserConversation implements Conversation, SlackMessageSender {
+public class SetUnmappedUserConversation extends ExtendedConversation {
 
 	public enum ConversationState {
 		INITIALIZED,
 		SELECTING_MAPPING_TO_UPDATE,
-		INPUTTING_MAPPING_DATA;
+		INPUTTING_MAPPING_DATA
 	}
 
 	private ConversationState conversationState;
-	private boolean finished;
 
-	List<UserMappingModel> unmappedUsers = null;
+	List<UserMappingModel> loadedUnmappedUsers = null;
 	UserMappingModel mappingToUpdate = null;
 
-	private final MergeMinderDb mergeMinderDb;
-
 	public SetUnmappedUserConversation(MergeMinderDb mergeMinderDb) {
-		this.conversationState = ConversationState.INITIALIZED;
-		this.finished = false;
-		this.mergeMinderDb = mergeMinderDb;
-	}
-
-	@Override
-	public boolean isFinished() {
-		return finished;
+		super(mergeMinderDb);
+		this.conversationState = SetUnmappedUserConversation.ConversationState.INITIALIZED;
 	}
 
 	@Override
@@ -54,7 +46,7 @@ public class SetUnmappedUserConversation implements Conversation, SlackMessageSe
 				finished = true;
 				return;
 			}
-			this.unmappedUsers = unmappedUsers;
+			this.loadedUnmappedUsers = unmappedUsers;
 			simulateHumanStyleMessageSending(channel, "Here are the users from Gitlab [username|realname] that are currently unmapped in Slack:", session);
 			for (int i = 0; i < unmappedUsers.size(); i++) {
 				StringBuilder message = new StringBuilder();
@@ -79,7 +71,7 @@ public class SetUnmappedUserConversation implements Conversation, SlackMessageSe
 	@Override
 	public void receiveNewInput(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException {
 		try {
-			if ("exit".equals(userInput.trim().toLowerCase())) {
+			if ("exit".equalsIgnoreCase(userInput.trim())) {
 				simulateHumanStyleMessageSending(channel, "Cancelling SET UNMAPPED USER operation.", session);
 				finished = true;
 				return;
@@ -104,10 +96,10 @@ public class SetUnmappedUserConversation implements Conversation, SlackMessageSe
 	private void selectMappingToUpdate(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) {
 		try {
 			int mappingNumberToUpdate = Integer.parseInt(userInput);
-			if (mappingNumberToUpdate <= 0 || mappingNumberToUpdate > unmappedUsers.size()) {
+			if (mappingNumberToUpdate <= 0 || mappingNumberToUpdate > loadedUnmappedUsers.size()) {
 				simulateHumanStyleMessageSending(channel, "Please enter a number corresponding to a line number above.  (Type \"exit\" to cancel)", session);
 			} else {
-				mappingToUpdate = unmappedUsers.get(mappingNumberToUpdate - 1);
+				mappingToUpdate = loadedUnmappedUsers.get(mappingNumberToUpdate - 1);
 				conversationState = ConversationState.INPUTTING_MAPPING_DATA;
 				simulateHumanStyleMessageSending(channel, "Ok.  Enter either the user's internal slack ID (U########) or Slack email address. (Type \"exit\" to cancel)", session);
 			}

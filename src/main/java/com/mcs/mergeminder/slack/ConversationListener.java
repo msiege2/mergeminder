@@ -11,10 +11,13 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.mcs.mergeminder.dao.MergeMinderDb;
-import com.mcs.mergeminder.dto.MinderProjectsModel;
-import com.mcs.mergeminder.dto.UserMappingModel;
 import com.mcs.mergeminder.exception.ConversationException;
 import com.mcs.mergeminder.properties.MergeMinderProperties;
+import com.mcs.mergeminder.slack.conversations.AddProjectConversation;
+import com.mcs.mergeminder.slack.conversations.SearchUserConversation;
+import com.mcs.mergeminder.slack.conversations.SetUnmappedUserConversation;
+import com.mcs.mergeminder.slack.conversations.ViewMappingsConversation;
+import com.mcs.mergeminder.slack.conversations.ViewProjectsConversation;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
@@ -101,6 +104,7 @@ public class ConversationListener implements SlackMessageSender {
 				session.sendMessage(channel, "User Mapping Commands:");
 				session.sendMessage(channel, " - set unmapped");
 				session.sendMessage(channel, " - view mappings");
+				session.sendMessage(channel, " - search users");
 				session.sendMessage(channel, "Project Administration Commands:");
 				session.sendMessage(channel, " - view projects [namespace]");
 				session.sendMessage(channel, " - add project");
@@ -110,36 +114,24 @@ public class ConversationListener implements SlackMessageSender {
 			return;
 		}
 
-		// Set unmapped users message
+		// Set unmapped users
 		if (messageContent.toLowerCase().startsWith("set unmapped")) {
-			if (!isUserAdmin(messageSender)) {
-				simulateHumanStyleMessageSending(channel, "Sorry!  You must be an admin to perform this function.", session);
-			} else {
-				startSetUnmappedUserConversation(channel, messageSender, session);
-			}
-			logger.info("Received 'SET UNMAPPED USER' request from user: {}", messageSender.getRealName());
+			converse(ConversationType.SET_UNMAPPED_USER, true, channel, messageSender, session, null);
 			return;
 		}
-
-		// Add project message
+		// Add project
 		if (messageContent.toLowerCase().startsWith("add project")) {
-			if (!isUserAdmin(messageSender)) {
-				simulateHumanStyleMessageSending(channel, "Sorry!  You must be an admin to perform this function.", session);
-			} else {
-				startAddProjectConversation(channel, messageSender, session);
-			}
-			logger.info("Received 'ADD PROJECT' request from user: {}", messageSender.getRealName());
+			converse(ConversationType.ADD_PROJECT, true, channel, messageSender, session, null);
 			return;
 		}
-
+		// Search users
+		if (messageContent.toLowerCase().startsWith("search user")) {
+			converse(ConversationType.SEARCH_USER, true, channel, messageSender, session, null);
+			return;
+		}
 		// View mappings
 		if (messageContent.toLowerCase().startsWith("view mappings")) {
-			if (!isUserAdmin(messageSender)) {
-				simulateHumanStyleMessageSending(channel, "Sorry!  You must be an admin to perform this function.", session);
-			} else {
-				viewMappings(channel, messageSender, session);
-			}
-			logger.info("Received 'VIEW MAPPINGS' request from user: {}", messageSender.getRealName());
+			converse(ConversationType.VIEW_MAPPINGS, true, channel, messageSender, session, null);
 			return;
 		}
 
@@ -156,13 +148,17 @@ public class ConversationListener implements SlackMessageSender {
 
 		// View Projects
 		if (messageContent.toLowerCase().startsWith("view projects")) {
+			// any parameter content should represent namespace
 			String parameterContent = messageContent.toLowerCase().substring("view projects".length());
-			viewProjects(channel, messageSender, session, parameterContent != null && !parameterContent.trim().isBlank() ? parameterContent.trim() : null);
-
-			logger.info("Received 'VIEW PROJECTS' request from user: {}", messageSender.getRealName());
+			if (org.apache.commons.lang3.StringUtils.isBlank(parameterContent)) {
+				parameterContent = null;
+			}
+			converse(ConversationType.VIEW_PROJECTS, false, channel, messageSender, session, parameterContent);
 			return;
 		}
 
+		// Other wacky responses
+		////////////////////////
 		if (messageContent.toLowerCase().startsWith("thank you") || messageContent.toLowerCase().startsWith("thanks")) {
 			simulateHumanStyleMessageSending(channel, "You're welcome.", session);
 			logger.info("Received 'THANKS' request from user: {}", messageSender.getRealName());
@@ -180,98 +176,68 @@ public class ConversationListener implements SlackMessageSender {
 			return;
 		}
 
+		//if we get this far, we don't know what to do with the input
+		sendUnknownInputResponse(channel, messageSender, session);
+	}
+
+	private void converse(ConversationType conversationType, boolean requiresAdmin, SlackChannel channel,
+		SlackUser messageSender, SlackSession session, String userInput) {
+		if (conversationType == null) {
+			return;
+		}
+
+		logger.info("Received {} request from user: {}", conversationType, messageSender.getRealName());
+
+		if (requiresAdmin && !isUserAdmin(messageSender)) {
+			simulateHumanStyleMessageSending(channel, "Sorry!  You must be an admin to perform this function.", session);
+			logger.warn("{} request denied because user is not an admin: {}", conversationType, messageSender.getRealName());
+		} else {
+			// Start a conversation!
+			try {
+				Conversation c = null;
+				switch (conversationType) {
+					case SET_UNMAPPED_USER:
+						c = new SetUnmappedUserConversation(mergeMinderDb);
+						break;
+					case ADD_PROJECT:
+						c = new AddProjectConversation(mergeMinderDb);
+						break;
+					case SEARCH_USER:
+						c = new SearchUserConversation(mergeMinderDb);
+						break;
+					case VIEW_PROJECTS:
+						c = new ViewProjectsConversation(mergeMinderDb);
+						break;
+					case VIEW_MAPPINGS:
+						c = new ViewMappingsConversation(mergeMinderDb);
+						break;
+					default:
+						sendUnknownInputResponse(channel, messageSender, session);
+				}
+				if (c != null) {
+					initializeConversation(c, channel, messageSender, session, userInput);
+				}
+			} catch (ConversationException e) {
+				sendOops(channel, messageSender, session);
+			}
+		}
+	}
+
+	private void sendUnknownInputResponse(SlackChannel channel, SlackUser messageSender, SlackSession session) {
 		simulateHumanStyleMessageSending(channel, "Hmm, I don't know quite what you are saying.  Sorry.", session);
 		logger.info("Received 'UNKNOWN' request from user: {}", messageSender.getRealName());
-		return;
-
 	}
 
-	/**
-	 * Starts a SetUnmappedUserConversation
-	 *
-	 * @param channel
-	 * @param messageSender
-	 * @param session
-	 */
-	private void startSetUnmappedUserConversation(SlackChannel channel, SlackUser messageSender, SlackSession session) {
-		Conversation conversation = new SetUnmappedUserConversation(mergeMinderDb);
-		activeConversations.put(messageSender.getId(), conversation);
-
-		try {
-			conversation.start(channel, messageSender, session, null);
-		} catch (ConversationException e) {
-			sendOops(channel, messageSender, session);
-		}
+	private void initializeConversation(Conversation c, SlackChannel channel, SlackUser messageSender, SlackSession session) throws ConversationException {
+		initializeConversation(c, channel, messageSender, session, null);
 	}
 
-	private void startAddProjectConversation(SlackChannel channel, SlackUser messageSender, SlackSession session) {
-		Conversation conversation = new AddProjectConversation(mergeMinderDb);
-		activeConversations.put(messageSender.getId(), conversation);
-
-		try {
-			conversation.start(channel, messageSender, session, null);
-		} catch (ConversationException e) {
-			sendOops(channel, messageSender, session);
+	private void initializeConversation(Conversation c, SlackChannel channel, SlackUser messageSender, SlackSession session, String initialInput) throws ConversationException {
+		if (c == null) {
+			return;
 		}
-	}
-
-	private void viewMappings(SlackChannel channel, SlackUser messageSender, SlackSession session) {
-		try {
-			List<UserMappingModel> userMappings = mergeMinderDb.getAllUserMappings();
-			if (userMappings == null) {
-				throw new ConversationException("Could not load user mappings.");
-			}
-			simulateHumanStyleMessageSending(channel, "Here are the users from Gitlab that have user mappings for their Slack accounts [username|realname -> slackUID|slackEmail]:", session);
-			for (int i = 0; i < userMappings.size(); i++) {
-				StringBuilder message = new StringBuilder();
-				UserMappingModel model = userMappings.get(i);
-				message.append("   ");
-				message.append(i + 1);
-				message.append(".  [ *");
-				message.append(model.getGitlabUsername());
-				message.append("*  |  *");
-				message.append(model.getGitlabName());
-				message.append("*  ->  *");
-				message.append(model.getSlackUID() == null ? "[UNKNOWN]" : model.getSlackUID());
-				message.append("*  |  *");
-				message.append(model.getSlackEmail() == null ? "[UNKNOWN]" : model.getSlackEmail());
-				message.append("* ]");
-				session.sendMessage(channel, message.toString());
-			}
-		} catch (ConversationException e) {
-			sendOops(channel, messageSender, session);
-		}
-	}
-
-	private void viewProjects(SlackChannel channel, SlackUser messageSender, SlackSession session, String namespace) {
-		try {
-			List<MinderProjectsModel> projectList = (namespace == null)
-				? mergeMinderDb.getMinderProjects() : mergeMinderDb.getMinderProjectsForNamespace(namespace);
-			if (projectList == null) {
-				throw new ConversationException("Could not load project list.");
-			}
-			if (projectList.isEmpty()) {
-				simulateHumanStyleMessageSending(channel, "I could not find any Gitlab projects that have MergeMinding enabled"
-					+ (namespace != null ? " for namespace " + namespace : "") + ":", session);
-			} else {
-				simulateHumanStyleMessageSending(channel, "Here are the Gitlab projects that have MergeMinding enabled"
-					+ (namespace != null ? " for namespace " + namespace : "") + ":", session);
-				StringBuilder message = new StringBuilder();
-				for (int i = 0; i < projectList.size(); i++) {
-					MinderProjectsModel model = projectList.get(i);
-					message.append(i + 1);
-
-					message.append(".\t[");
-					message.append(model.getNamespace());
-					message.append("/");
-					message.append(model.getProject());
-					message.append("]\n");
-				}
-				session.sendMessage(channel, message.toString());
-			}
-		} catch (ConversationException e) {
-			sendOops(channel, messageSender, session);
-		}
+		activeConversations.put(messageSender.getId(), c);
+		c.start(channel, messageSender, session, initialInput);
 	}
 
 	/**

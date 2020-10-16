@@ -1,13 +1,17 @@
-package com.mcs.mergeminder.slack;
+package com.mcs.mergeminder.slack.conversations;
 
 import com.mcs.mergeminder.dao.MergeMinderDb;
 import com.mcs.mergeminder.dto.MinderProjectsModel;
 import com.mcs.mergeminder.exception.ConversationException;
+import com.mcs.mergeminder.slack.ExtendedConversation;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
 
-public class AddProjectConversation implements Conversation, SlackMessageSender {
+/**
+ * Conversation to handle Adding new projects to MergeMinder.
+ */
+public class AddProjectConversation extends ExtendedConversation {
 
 	public enum ConversationState {
 		INITIALIZED,
@@ -16,22 +20,13 @@ public class AddProjectConversation implements Conversation, SlackMessageSender 
 	}
 
 	private ConversationState conversationState;
-	private boolean finished;
 
 	private String namespace;
 	private String projectName;
 
-	private final MergeMinderDb mergeMinderDb;
-
 	public AddProjectConversation(MergeMinderDb mergeMinderDb) {
+		super(mergeMinderDb);
 		this.conversationState = ConversationState.INITIALIZED;
-		this.finished = false;
-		this.mergeMinderDb = mergeMinderDb;
-	}
-
-	@Override
-	public boolean isFinished() {
-		return finished;
 	}
 
 	@Override

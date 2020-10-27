@@ -1,5 +1,8 @@
 language: java
 
+jdk:
+  - openjdk14
+
 before_deploy:
   - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
 

@@ -242,6 +242,9 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <from>
+                        <image>adoptopenjdk/openjdk14</image>
+                    </from>
                     <to>
                         <image>docker.io/msiege2/mergeminder:${project.version}</image>
                         <tags>

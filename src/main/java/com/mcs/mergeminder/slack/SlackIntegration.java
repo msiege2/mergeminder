@@ -26,12 +26,18 @@ import com.mcs.mergeminder.dto.SlackUserSearchCriteria;
 import com.mcs.mergeminder.dto.UserMappingModel;
 import com.mcs.mergeminder.properties.MergeMinderProperties;
 import com.mcs.mergeminder.properties.SlackProperties;
+import com.slack.api.Slack;
+import com.slack.api.methods.MethodsClient;
+import com.slack.api.methods.request.chat.ChatPostMessageRequest;
+import com.slack.api.methods.response.api.ApiTestResponse;
+import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackPreparedMessage;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
 import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
 import com.ullink.slack.simpleslackapi.listeners.SlackMessagePostedListener;
+
 
 @Component
 public class SlackIntegration {
@@ -57,6 +63,19 @@ public class SlackIntegration {
 
 	@PostConstruct
 	public void init() throws Exception {
+		Slack slack = Slack.getInstance();
+
+		// Initialize an API Methods client with the given token
+		MethodsClient methods = slack.methods(slackProperties.getBotToken());
+
+		ChatPostMessageRequest request = ChatPostMessageRequest.builder()
+			.channel("#bottest_20170128") // Use a channel ID `C1234567` is preferrable
+			.text(":wave: Hi from a bot written in Java!")
+			.build();
+
+		// Get a response as a Java object
+		ChatPostMessageResponse response = methods.chatPostMessage(request);
+
 		SlackSession session = SlackSessionFactory
 			.getSlackSessionBuilder(slackProperties.getBotToken())
 			.withAutoreconnectOnDisconnection(true)

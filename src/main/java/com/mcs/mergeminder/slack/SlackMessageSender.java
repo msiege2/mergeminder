@@ -14,13 +14,14 @@ public interface SlackMessageSender {
 	 * @param channel
 	 * @param message
 	 * @param session
+	 * @param slackApi
 	 */
-	default void simulateHumanStyleMessageSending(SlackChannel channel, String message, SlackSession session) {
+	default void simulateHumanStyleMessageSending(SlackChannel channel, String message, SlackSession session, SlackApi slackApi) {
 		SlackPreparedMessage slackPreparedMessage = new SlackPreparedMessage.Builder()
 			.withMessage(message)
 			.withUnfurl(false)
 			.build();
-		simulateHumanStyleMessageSending(channel, slackPreparedMessage, session);
+		simulateHumanStyleMessageSending(channel, slackPreparedMessage, session, slackApi);
 	}
 
 	/**
@@ -29,9 +30,10 @@ public interface SlackMessageSender {
 	 * @param channel
 	 * @param message
 	 * @param session
+	 * @param slackApi
 	 */
-	default void simulateHumanStyleMessageSending(SlackChannel channel, SlackPreparedMessage message, SlackSession session) {
-		// first generate a random "typing time between 600 and 1200 milliseconds.
+	default void simulateHumanStyleMessageSending(SlackChannel channel, SlackPreparedMessage message, SlackSession session, SlackApi slackApi) {
+		// first generate a random "typing time" between 600 and 1200 milliseconds.
 		int randomTypingTime = ThreadLocalRandom.current().nextInt(500, 900 + 1);
 		// then take a pseudo-random amount of milliseconds for each character in the message.  This will be added to the typing time.
 		int lengthBasedSplay = message.getMessage().length() * 20 * ThreadLocalRandom.current().nextInt(35, 81) / 100;
@@ -44,7 +46,7 @@ public interface SlackMessageSender {
 			InterruptedException e) {
 			// ignored
 		}
-		session.sendMessage(channel, message);
+		slackApi.sendMessage(channel, message);
 	}
 
 }

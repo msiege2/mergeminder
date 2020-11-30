@@ -33,25 +33,25 @@ public abstract class SingleResponseConversation implements Conversation, SlackM
 
 	@Override
 	public boolean isFinished() {
-		return finished;
+		return this.finished;
 	}
 
 	@Override
-	public void start(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException {
+	public void start(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException {
 		try {
-			handleResponse(channel, messageSender, session, userInput);
-			finished = true;
+			handleResponse(channel, messageSender, session, slackApi, userInput);
+			this.finished = true;
 		} catch (ConversationException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new ConversationException("Error in starting " + conversationType + " conversation.", e);
+			throw new ConversationException("Error in starting " + this.conversationType + " conversation.", e);
 		}
 	}
 
 	@Override
-	public void receiveNewInput(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException {
+	public void receiveNewInput(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException {
 		throw new ConversationException("SingleResponseConversation does not support new input.");
 	}
 
-	protected abstract void handleResponse(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException;
+	protected abstract void handleResponse(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException;
 }

@@ -7,23 +7,24 @@ import com.mcs.mergeminder.dto.UserMappingModel;
 import com.mcs.mergeminder.exception.ConversationException;
 import com.mcs.mergeminder.slack.ConversationType;
 import com.mcs.mergeminder.slack.SingleResponseConversation;
+import com.mcs.mergeminder.slack.SlackApi;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
 
 public class ViewMappingsConversation extends SingleResponseConversation {
-	
+
 	public ViewMappingsConversation(MergeMinderDb mergeMinderDb) {
 		super(mergeMinderDb, ConversationType.VIEW_MAPPINGS.toString());
 	}
 
 	@Override
-	protected void handleResponse(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException {
-		List<UserMappingModel> userMappings = mergeMinderDb.getAllUserMappings();
+	protected void handleResponse(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException {
+		List<UserMappingModel> userMappings = this.mergeMinderDb.getAllUserMappings();
 		if (userMappings == null) {
 			throw new ConversationException("Could not load user mappings.");
 		}
-		simulateHumanStyleMessageSending(channel, "Here are the users from Gitlab that have user mappings for their Slack accounts [username|realname -> slackUID|slackEmail]:", session);
+		simulateHumanStyleMessageSending(channel, "Here are the users from Gitlab that have user mappings for their Slack accounts [username|realname -> slackUID|slackEmail]:", session, slackApi);
 		for (int i = 0; i < userMappings.size(); i++) {
 			StringBuilder message = new StringBuilder();
 			UserMappingModel model = userMappings.get(i);
@@ -38,7 +39,7 @@ public class ViewMappingsConversation extends SingleResponseConversation {
 			message.append("*  |  *");
 			message.append(model.getSlackEmail() == null ? "[UNKNOWN]" : model.getSlackEmail());
 			message.append("* ]");
-			session.sendMessage(channel, message.toString());
+			slackApi.sendMessage(channel, message.toString());
 		}
 	}
 }

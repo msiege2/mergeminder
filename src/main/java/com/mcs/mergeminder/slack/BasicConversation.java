@@ -52,47 +52,47 @@ public abstract class BasicConversation implements Conversation, SlackMessageSen
 
 	@Override
 	public boolean isFinished() {
-		return finished;
+		return this.finished;
 	}
 
 	@Override
-	public void start(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException {
+	public void start(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException {
 		try {
-			showInitialMessage(channel, messageSender, session, userInput);
-			conversationState = ConversationState.INPUT_ADDED;
+			showInitialMessage(channel, messageSender, session, slackApi, userInput);
+			this.conversationState = ConversationState.INPUT_ADDED;
 		} catch (ConversationException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new ConversationException("Error in starting " + conversationType + " conversation.", e);
+			throw new ConversationException("Error in starting " + this.conversationType + " conversation.", e);
 		}
 	}
 
 	@Override
-	public void receiveNewInput(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException {
+	public void receiveNewInput(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException {
 		try {
 			if ("exit".equalsIgnoreCase(userInput.trim())) {
-				handleExit(channel, messageSender, session, userInput);
-				finished = true;
+				handleExit(channel, messageSender, session, slackApi, userInput);
+				this.finished = true;
 				return;
 			}
-			switch (conversationState) {
+			switch (this.conversationState) {
 				case INPUT_ADDED:
-					finished = handleResponse(channel, messageSender, session, userInput);
+					this.finished = handleResponse(channel, messageSender, session, slackApi, userInput);
 					break;
 				default:
-					throw new ConversationException("Unknown state in " + conversationType + " conversation!");
+					throw new ConversationException("Unknown state in " + this.conversationType + " conversation!");
 			}
 		} catch (ConversationException e) {
 			throw e;
 		} catch (Exception e) {
-			throw new ConversationException("Error in " + conversationType + " conversation.", e);
+			throw new ConversationException("Error in " + this.conversationType + " conversation.", e);
 		}
-		if (finished) {
-			logger.info(conversationType + " conversation is now finished.");
+		if (this.finished) {
+			logger.info(this.conversationType + " conversation is now finished.");
 		}
 	}
 
-	protected abstract void showInitialMessage(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException;
+	protected abstract void showInitialMessage(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException;
 
 	/**
 	 * Takes the input to the initial message from the user and processes it.
@@ -104,10 +104,10 @@ public abstract class BasicConversation implements Conversation, SlackMessageSen
 	 * @return <tt>true</tt> if the conversation is finished, <tt>false</tt> if the conversation should be kept alive in its current state.
 	 * @throws ConversationException
 	 */
-	protected abstract boolean handleResponse(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException;
+	protected abstract boolean handleResponse(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException;
 
-	protected void handleExit(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException {
-		simulateHumanStyleMessageSending(channel, "Cancelling " + conversationType + " operation.", session);
+	protected void handleExit(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException {
+		simulateHumanStyleMessageSending(channel, "Cancelling " + this.conversationType + " operation.", session, slackApi);
 	}
 
 }

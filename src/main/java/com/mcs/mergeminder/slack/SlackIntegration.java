@@ -26,18 +26,12 @@ import com.mcs.mergeminder.dto.SlackUserSearchCriteria;
 import com.mcs.mergeminder.dto.UserMappingModel;
 import com.mcs.mergeminder.properties.MergeMinderProperties;
 import com.mcs.mergeminder.properties.SlackProperties;
-import com.slack.api.Slack;
-import com.slack.api.methods.MethodsClient;
-import com.slack.api.methods.request.chat.ChatPostMessageRequest;
-import com.slack.api.methods.response.api.ApiTestResponse;
-import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackPreparedMessage;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
 import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
 import com.ullink.slack.simpleslackapi.listeners.SlackMessagePostedListener;
-
 
 @Component
 public class SlackIntegration {
@@ -53,6 +47,7 @@ public class SlackIntegration {
 	private final MergeMinderProperties mergeMinderProperties;
 	private final SlackProperties slackProperties;
 	private SlackSession slackSession;
+	private SlackApi slackApi;
 
 	public SlackIntegration(MergeMinderDb mergeMinderDb, ConversationListener conversationListener, MergeMinderProperties mergeMinderProperties, SlackProperties slackProperties) {
 		this.mergeMinderDb = mergeMinderDb;
@@ -63,21 +58,8 @@ public class SlackIntegration {
 
 	@PostConstruct
 	public void init() throws Exception {
-		Slack slack = Slack.getInstance();
-
-		// Initialize an API Methods client with the given token
-		MethodsClient methods = slack.methods(slackProperties.getBotToken());
-
-		ChatPostMessageRequest request = ChatPostMessageRequest.builder()
-			.channel("#bottest_20170128") // Use a channel ID `C1234567` is preferrable
-			.text(":wave: Hi from a bot written in Java!")
-			.build();
-
-		// Get a response as a Java object
-		ChatPostMessageResponse response = methods.chatPostMessage(request);
-
 		SlackSession session = SlackSessionFactory
-			.getSlackSessionBuilder(slackProperties.getBotToken())
+			.getSlackSessionBuilder(this.slackProperties.getBotToken())
 			.withAutoreconnectOnDisconnection(true)
 			.withConnectionHeartbeat(15, TimeUnit.SECONDS)
 			.build();
@@ -85,22 +67,29 @@ public class SlackIntegration {
 		this.slackSession = session;
 		this.registerListener();
 		logger.info("Slack connection created.  Notification channel is {}.  User notification is {}",
-			slackProperties.getNotificationChannel() != null ? "ENABLED on channel #" + slackProperties.getNotificationChannel() : "DISABLED",
-			slackProperties.getNotifyUsers() ? "ENABLED" : "DISABLED");
-		logger.info("Admin users: {}", StringUtils.collectionToCommaDelimitedString(mergeMinderProperties.getAdminEmails()));
+			this.slackProperties.getNotificationChannel() != null ? "ENABLED on channel #" + this.slackProperties.getNotificationChannel() : "DISABLED",
+			this.slackProperties.getNotifyUsers() ? "ENABLED" : "DISABLED");
+		logger.info("Admin users: {}", StringUtils.collectionToCommaDelimitedString(this.mergeMinderProperties.getAdminEmails()));
+
+		SlackApi slackApi = new SlackApi(this.slackProperties.getBotToken());
+		this.slackApi = slackApi;
 	}
 
 	public void registerListener() {
 		logger.info("Registering Slack message listener for conversational functionality.");
 		// first define the listener
-		SlackMessagePostedListener messagePostedListener = (event, session) -> conversationListener.handleIncomingEvent(event, session);
+		SlackMessagePostedListener messagePostedListener = (event, session) -> this.conversationListener.handleIncomingEvent(event, session, this.slackApi);
 		//add it to the session
-		slackSession.addMessagePostedListener(messagePostedListener);
+		this.slackSession.addMessagePostedListener(messagePostedListener);
 		logger.info("Message listener registration complete.");
 	}
 
 	public SlackSession getSlackSession() {
-		return slackSession;
+		return this.slackSession;
+	}
+
+	public SlackApi getSlackApi() {
+		return this.slackApi;
 	}
 
 	/**
@@ -112,10 +101,10 @@ public class SlackIntegration {
 	 */
 	public void notifyMergeRequest(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
 		// Always notify the channel
-		if (slackProperties.getNotificationChannel() != null) {
+		if (this.slackProperties.getNotificationChannel() != null) {
 			notifyChannelOfMergeInformation(mrInfo);
 		}
-		if (slackProperties.getNotifyUsers() && reminderLength.shouldSendAlert()) {
+		if (this.slackProperties.getNotifyUsers() && reminderLength.shouldSendAlert()) {
 			notifyUser(mrInfo, reminderLength, userEmail);
 		}
 	}
@@ -129,18 +118,18 @@ public class SlackIntegration {
 	 */
 	private void notifyUser(MergeRequestAssignmentInfo mrInfo, ReminderLength reminderLength, String userEmail) {
 		// first check the mapping table
-		UserMappingModel userMapping = mergeMinderDb.getUserMappingByGitlabUsername(mrInfo.getAssignee().getUsername());
+		UserMappingModel userMapping = this.mergeMinderDb.getUserMappingByGitlabUsername(mrInfo.getAssignee().getUsername());
 		SlackUser user = findUserFromPredefinedMapping(userMapping);
 		// then try email lookup
 		if (user == null) {
 			if (userEmail != null) {
 				// if we found the user's email in gitlab, use that...
-				user = slackSession.findUserByEmail(userEmail);
+				user = this.slackSession.findUserByEmail(userEmail);
 			} else {
 				// otherwise guess their slack email from realname + emaildomains
 				List<String> potentialEmails = guessEmails(mrInfo.getAssignee());
 				for (String potentialUserEmail : potentialEmails) {
-					user = slackSession.findUserByEmail(potentialUserEmail);
+					user = this.slackSession.findUserByEmail(potentialUserEmail);
 					if (user != null) {
 						break;
 					}
@@ -191,7 +180,7 @@ public class SlackIntegration {
 					.withMessage(messageForUser)
 					.withUnfurl(false)
 					.build();
-				slackSession.sendMessageToUser(user, slackPreparedMessage);
+				this.slackApi.sendMessageToUser(user, slackPreparedMessage);
 			}
 		} else {
 			logger.warn("Could not send user notification because user with email {} couldn't be located.", userEmail);
@@ -207,7 +196,7 @@ public class SlackIntegration {
 		logger.info("Recording user in UserMapping lookup table.");
 		UserMappingModel userMapping = new UserMappingModel(user.getUsername());
 		userMapping.setGitlabName(user.getName());
-		mergeMinderDb.saveUserMapping(userMapping);
+		this.mergeMinderDb.saveUserMapping(userMapping);
 	}
 
 	/**
@@ -222,10 +211,10 @@ public class SlackIntegration {
 		}
 		SlackUser slackUser = null;
 		if (userMapping.getSlackUID() != null) {
-			slackUser = slackSession.findUserById(userMapping.getSlackUID());
+			slackUser = this.slackSession.findUserById(userMapping.getSlackUID());
 		}
 		if (slackUser == null && userMapping.getSlackEmail() != null) {
-			slackUser = slackSession.findUserByEmail(userMapping.getSlackEmail());
+			slackUser = this.slackSession.findUserByEmail(userMapping.getSlackEmail());
 		}
 		return slackUser;
 	}
@@ -249,11 +238,11 @@ public class SlackIntegration {
 			.withMessage(sb.toString())
 			.withUnfurl(false)
 			.build();
-		SlackChannel channel = slackSession.findChannelByName(slackProperties.getNotificationChannel());
+		SlackChannel channel = this.slackSession.findChannelByName(this.slackProperties.getNotificationChannel());
 		if (channel != null) {
-			slackSession.sendMessage(channel, preparedMessage);
+			this.slackApi.sendMessage(channel, preparedMessage);
 		} else {
-			logger.warn("Could not send notifications to slack channel #{}", slackProperties.getNotificationChannel());
+			logger.warn("Could not send notifications to slack channel #{}", this.slackProperties.getNotificationChannel());
 		}
 	}
 
@@ -286,7 +275,7 @@ public class SlackIntegration {
 	}
 
 	private String buildMRTitleSection(MergeRequest mr) {
-		if (StringUtils.isEmpty(mr.getTitle())) {
+		if (!StringUtils.hasLength(mr.getTitle())) {
 			return "{NO TITLE}";
 		}
 		String[] lines = mr.getTitle().split("\\n");
@@ -300,7 +289,7 @@ public class SlackIntegration {
 	 * @return
 	 */
 	private SlackUser findUserTheHardWay(User u) {
-		Collection<SlackUser> slackUsers = slackSession.getUsers();
+		Collection<SlackUser> slackUsers = this.slackSession.getUsers();
 		for (SlackUser slackUser : slackUsers) {
 			String[] namePieces = u.getName().split("\\s");
 			String slackUserRealName = slackUser.getRealName();
@@ -321,26 +310,26 @@ public class SlackIntegration {
 	}
 
 	public List<SlackUserModel> searchSlackUsers(SlackUserSearchCriteria searchCriteria) {
-		Collection<SlackUser> slackUsers = slackSession.getUsers();
+		Collection<SlackUser> slackUsers = this.slackSession.getUsers();
 		List<SlackUserModel> matchingUsers = new LinkedList<>();
 		for (SlackUser slackUser : slackUsers) {
-			if (!StringUtils.isEmpty(searchCriteria.getId())) {
-				if (StringUtils.isEmpty(slackUser.getId()) || !slackUser.getId().toLowerCase().contains(searchCriteria.getId().toLowerCase())) {
+			if (StringUtils.hasLength(searchCriteria.getId())) {
+				if (!StringUtils.hasLength(slackUser.getId()) || !slackUser.getId().toLowerCase().contains(searchCriteria.getId().toLowerCase())) {
 					continue;
 				}
 			}
-			if (!StringUtils.isEmpty(searchCriteria.getRealName())) {
-				if (StringUtils.isEmpty(slackUser.getRealName()) || !slackUser.getRealName().toLowerCase().contains(searchCriteria.getRealName().toLowerCase())) {
+			if (StringUtils.hasLength(searchCriteria.getRealName())) {
+				if (!StringUtils.hasLength(slackUser.getRealName()) || !slackUser.getRealName().toLowerCase().contains(searchCriteria.getRealName().toLowerCase())) {
 					continue;
 				}
 			}
-			if (!StringUtils.isEmpty(searchCriteria.getUsername())) {
-				if (StringUtils.isEmpty(slackUser.getUserName()) || !slackUser.getUserName().toLowerCase().contains(searchCriteria.getUsername().toLowerCase())) {
+			if (StringUtils.hasLength(searchCriteria.getUsername())) {
+				if (!StringUtils.hasLength(slackUser.getUserName()) || !slackUser.getUserName().toLowerCase().contains(searchCriteria.getUsername().toLowerCase())) {
 					continue;
 				}
 			}
-			if (!StringUtils.isEmpty(searchCriteria.getEmail())) {
-				if (StringUtils.isEmpty(slackUser.getUserMail()) || !slackUser.getUserMail().toLowerCase().contains(searchCriteria.getEmail().toLowerCase())) {
+			if (StringUtils.hasLength(searchCriteria.getEmail())) {
+				if (!StringUtils.hasLength(slackUser.getUserMail()) || !slackUser.getUserMail().toLowerCase().contains(searchCriteria.getEmail().toLowerCase())) {
 					continue;
 				}
 			}
@@ -360,14 +349,15 @@ public class SlackIntegration {
 	}
 
 	private List<String> guessEmails(User user) {
-		if (user == null || CollectionUtils.isEmpty(mergeMinderProperties.getEmailDomains())) {
+		if (user == null || CollectionUtils.isEmpty(this.mergeMinderProperties.getEmailDomains())) {
 			return Collections.emptyList();
 		}
 		List<String> emailGuesses = new ArrayList<>();
 		// email domains should be comma separated
-		for (String emailDomain : mergeMinderProperties.getEmailDomains()) {
+		for (String emailDomain : this.mergeMinderProperties.getEmailDomains()) {
 			emailGuesses.add(user.getName().toLowerCase().replaceAll("\\s", ".") + "@" + emailDomain);
 		}
 		return emailGuesses;
 	}
+
 }

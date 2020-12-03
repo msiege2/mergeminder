@@ -1,13 +1,15 @@
 package com.mcs.mergeminder.slack;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.mcs.mergeminder.exception.SlackIntegrationException;
 import com.slack.api.Slack;
 import com.slack.api.methods.MethodsClient;
-import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.methods.request.conversations.ConversationsOpenRequest;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
@@ -18,23 +20,29 @@ import com.ullink.slack.simpleslackapi.SlackUser;
 
 public class SlackApi {
 
+	private static final Logger logger = LoggerFactory.getLogger(SlackApi.class);
+
 	private Slack slack;
 
 	private MethodsClient methods;
+	/* Uncomment when rtm is used -- ie, typing event */
 	//	private RTMClient rtm;
 
+	/* Cache for IM channel IDs. */
 	Map<String, String> directChannelIdCache;
 
-	public SlackApi(String botToken) {
+	public SlackApi(String botToken) throws SlackIntegrationException {
 		try {
 			this.directChannelIdCache = new HashMap<>();
 			this.slack = Slack.getInstance();
 
 			// Initialize an API Methods client with the given token
 			this.methods = this.slack.methods(botToken);
+
+			/* Uncomment when RTM is to be used */
 			//this.rtm = this.slack.rtmConnect(botToken);
 		} catch (Exception e) {
-
+			throw new SlackIntegrationException("Could not initialize SlackApi object.", e);
 		}
 	}
 
@@ -46,23 +54,30 @@ public class SlackApi {
 	 * @param messageContent
 	 */
 	public ChatPostMessageResponse sendMessage(SlackChannel channel, SlackPreparedMessage messageContent) {
-		ChatPostMessageRequest request = ChatPostMessageRequest.builder()
-			.channel(channel.getId())
-			.text(messageContent.getMessage())
-			.unfurlLinks(messageContent.isUnfurl())
-			.linkNames(messageContent.isLinkNames())
-			.build();
-		// Get a response as a Java object
 		try {
+			ChatPostMessageRequest request = ChatPostMessageRequest.builder()
+				.channel(channel.getId())
+				.text(messageContent.getMessage())
+				.unfurlLinks(messageContent.isUnfurl())
+				.linkNames(messageContent.isLinkNames())
+				.build();
+
+			// Get a response as a Java object
 			return this.methods.chatPostMessage(request);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (SlackApiException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			logger.error("Could not send message through slack!", e);
+			return null;
 		}
-		return null;
 	}
 
+	/**
+	 * Sends a message to a channel.  This method mixes the use of the legacy ullink SlackApi and the
+	 * Slack provided Java API.  It is temporary to avoid the use of deprecated API methods in the ullink product.
+	 *
+	 * @param channel
+	 * @param message
+	 * @return
+	 */
 	public ChatPostMessageResponse sendMessage(SlackChannel channel, String message) {
 		SlackPreparedMessage preparedMessage = new SlackPreparedMessage.Builder()
 			.withMessage(message)
@@ -79,34 +94,32 @@ public class SlackApi {
 	 * @param user
 	 * @param messageContent
 	 */
-	public void sendMessageToUser(SlackUser user, SlackPreparedMessage messageContent) {
-		// In order to send the message, we need to do a few things.  We need a channel ID for the direct message,
-		// which should be in the format "D#######", and we need the message to send.  Then we'll send the message over the
-		// websocket RTM connection.
-
-		// Step 1: Get the channel ID.
-		String directChannelId = getDirectMessageChannelId(user.getId());
-
-		// Send messages over a WebSocket connection
-		//		String channelId = "C1234567";
-		//		String message = Message.builder().id(1234567L).channel(channelId).text(":wave: Hi there!").build().toJSONString();
-		//		this.rtm.sendMessage(message);
-
-		ChatPostMessageRequest request = ChatPostMessageRequest.builder()
-			.channel(directChannelId) // Use a channel ID `C1234567` is preferrable
-			.text(messageContent.getMessage())
-			.unfurlLinks(messageContent.isUnfurl())
-			.linkNames(messageContent.isLinkNames())
-			.build();
-		// Get a response as a Java object
+	public ChatPostMessageResponse sendMessageToUser(SlackUser user, SlackPreparedMessage messageContent) {
 		try {
-			ChatPostMessageResponse response = this.methods.chatPostMessage(request);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (SlackApiException e) {
-			e.printStackTrace();
-		}
+			// In order to send the message, we need to do a few things.  We need a channel ID for the direct message,
+			// which should be in the format "D#######", and we need the message to send.
 
+			// Step 1: Get the channel ID.
+			String directChannelId = getDirectMessageChannelId(user.getId());
+
+			// Step 2: Create a chat.postMessage request
+			ChatPostMessageRequest request = ChatPostMessageRequest.builder()
+				.channel(directChannelId) // Use a channel ID `C1234567` is preferrable
+				.text(messageContent.getMessage())
+				.unfurlLinks(messageContent.isUnfurl())
+				.linkNames(messageContent.isLinkNames())
+				.build();
+
+			// Step 3: Send the message, get the response.
+			ChatPostMessageResponse response = this.methods.chatPostMessage(request);
+
+			//TODO: Handle the response -- look for a failure?
+
+			return response;
+		} catch (Exception e) {
+			logger.error("Could not send direct message through slack!", e);
+			return null;
+		}
 	}
 
 	/**
@@ -115,7 +128,7 @@ public class SlackApi {
 	 * @param userId User ID in format U#######
 	 * @return channel ID in format D#######
 	 */
-	private String getDirectMessageChannelId(String userId) {
+	private String getDirectMessageChannelId(String userId) throws SlackIntegrationException {
 		try {
 			String directChannelId = this.directChannelIdCache.get(userId);
 			if (directChannelId == null) {
@@ -131,10 +144,8 @@ public class SlackApi {
 			}
 			return directChannelId;
 		} catch (Exception e) {
-			// TODO : improve exception handling
-			e.printStackTrace();
+			throw new SlackIntegrationException("Could not find direct channel ID for message.", e);
 		}
-		return null;
 	}
 
 }

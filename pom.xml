@@ -7,7 +7,7 @@
     <groupId>com.mcs.slack</groupId>
     <artifactId>mergeminder</artifactId>
     <name>MergeMinder</name>
-    <version>1.3.1</version>
+    <version>1.4.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>

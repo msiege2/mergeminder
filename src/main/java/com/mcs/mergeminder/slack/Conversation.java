@@ -7,9 +7,9 @@ import com.ullink.slack.simpleslackapi.SlackUser;
 
 public interface Conversation {
 
-	void start(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException;
+	void start(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException;
 
-	void receiveNewInput(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException;
+	void receiveNewInput(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException;
 
 	boolean isFinished();
 }

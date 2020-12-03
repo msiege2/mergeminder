@@ -7,6 +7,7 @@ import com.mcs.mergeminder.dto.MinderProjectsModel;
 import com.mcs.mergeminder.exception.ConversationException;
 import com.mcs.mergeminder.slack.ConversationType;
 import com.mcs.mergeminder.slack.SingleResponseConversation;
+import com.mcs.mergeminder.slack.SlackApi;
 import com.ullink.slack.simpleslackapi.SlackChannel;
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.SlackUser;
@@ -18,18 +19,18 @@ public class ViewProjectsConversation extends SingleResponseConversation {
 	}
 
 	@Override
-	protected void handleResponse(SlackChannel channel, SlackUser messageSender, SlackSession session, String namespace) throws ConversationException {
+	protected void handleResponse(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String namespace) throws ConversationException {
 		List<MinderProjectsModel> projectList = (namespace == null)
-			? mergeMinderDb.getMinderProjects() : mergeMinderDb.getMinderProjectsForNamespace(namespace);
+			? this.mergeMinderDb.getMinderProjects() : this.mergeMinderDb.getMinderProjectsForNamespace(namespace);
 		if (projectList == null) {
 			throw new ConversationException("Could not load project list.");
 		}
 		if (projectList.isEmpty()) {
 			simulateHumanStyleMessageSending(channel, "I could not find any Gitlab projects that have MergeMinding enabled"
-				+ (namespace != null ? " for namespace " + namespace : "") + ":", session);
+				+ (namespace != null ? " for namespace " + namespace : "") + ":", session, slackApi);
 		} else {
 			simulateHumanStyleMessageSending(channel, "Here are the Gitlab projects that have MergeMinding enabled"
-				+ (namespace != null ? " for namespace " + namespace : "") + ":", session);
+				+ (namespace != null ? " for namespace " + namespace : "") + ":", session, slackApi);
 			StringBuilder message = new StringBuilder();
 			for (int i = 0; i < projectList.size(); i++) {
 				MinderProjectsModel model = projectList.get(i);
@@ -41,7 +42,7 @@ public class ViewProjectsConversation extends SingleResponseConversation {
 				message.append(model.getProject());
 				message.append("]\n");
 			}
-			session.sendMessage(channel, message.toString());
+			slackApi.sendMessage(channel, message.toString());
 		}
 
 	}

@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 public class SlackProperties {
 
 	@NotNull String botToken;
+	@NotNull String signingSecret;
 	String notificationChannel = null;
 	Boolean notifyUsers = false;
 
@@ -21,6 +22,14 @@ public class SlackProperties {
 
 	public void setBotToken(String botToken) {
 		this.botToken = botToken;
+	}
+
+	public String getSigningSecret() {
+		return signingSecret;
+	}
+
+	public void setSigningSecret(String signingSecret) {
+		this.signingSecret = signingSecret;
 	}
 
 	public String getNotificationChannel() {

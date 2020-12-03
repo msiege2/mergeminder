@@ -24,12 +24,12 @@ public abstract class ExtendedConversation implements Conversation, SlackMessage
 
 	@Override
 	public boolean isFinished() {
-		return finished;
+		return this.finished;
 	}
 
 	@Override
-	public abstract void start(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException;
+	public abstract void start(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException;
 
 	@Override
-	public abstract void receiveNewInput(SlackChannel channel, SlackUser messageSender, SlackSession session, String userInput) throws ConversationException;
+	public abstract void receiveNewInput(SlackChannel channel, SlackUser messageSender, SlackSession session, SlackApi slackApi, String userInput) throws ConversationException;
 }

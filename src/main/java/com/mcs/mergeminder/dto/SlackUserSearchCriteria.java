@@ -19,7 +19,7 @@ public class SlackUserSearchCriteria {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(String id) {
@@ -27,7 +27,7 @@ public class SlackUserSearchCriteria {
 	}
 
 	public String getUsername() {
-		return username;
+		return this.username;
 	}
 
 	public void setUsername(String username) {
@@ -35,7 +35,7 @@ public class SlackUserSearchCriteria {
 	}
 
 	public String getRealName() {
-		return realName;
+		return this.realName;
 	}
 
 	public void setRealName(String realName) {
@@ -43,7 +43,7 @@ public class SlackUserSearchCriteria {
 	}
 
 	public String getEmail() {
-		return email;
+		return this.email;
 	}
 
 	public void setEmail(String email) {
@@ -51,9 +51,9 @@ public class SlackUserSearchCriteria {
 	}
 
 	public boolean isEmptyCriteria() {
-		return StringUtils.isEmpty(this.id)
-			&& StringUtils.isEmpty(username)
-			&& StringUtils.isEmpty(realName)
-			&& StringUtils.isEmpty(email);
+		return !StringUtils.hasLength(this.id)
+			&& !StringUtils.hasLength(this.username)
+			&& !StringUtils.hasLength(this.realName)
+			&& !StringUtils.hasLength(this.email);
 	}
 }

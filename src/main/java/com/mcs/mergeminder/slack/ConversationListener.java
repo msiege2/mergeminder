@@ -146,6 +146,20 @@ public class ConversationListener implements SlackMessageSender {
 			return;
 		}
 
+		if (messageContent.toLowerCase().startsWith("whoami")) {
+			StringBuffer message = new StringBuffer();
+			message.append("You are " + messageSender.getRealName() + ".  ");
+			if (!isUserAdmin(messageSender)) {
+				message.append("You are a normal user.");
+			} else {
+				message.append("You are an ADMIN user.");
+			}
+			simulateHumanStyleMessageSending(channel, message.toString(), session, slackApi);
+
+			logger.info("Received 'WHOAMI' request from user: {}", messageSender.getRealName());
+			return;
+		}
+
 		// View Projects
 		if (messageContent.toLowerCase().startsWith("view projects")) {
 			// any parameter content should represent namespace

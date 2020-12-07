@@ -80,21 +80,23 @@ public class MergeMinder {
 		Instant start = Instant.now();
 
 		List<MinderProjectsModel> projectList = this.mergeMinderDb.getMinderProjects();
+		logger.info("Minding {} project(s).", projectList.size());
 		for (MinderProjectsModel project : projectList) {
 			mindOneProject(project);
 		}
 		Instant finish = Instant.now();
 		long timeElapsed = Duration.between(start, finish).toSeconds();
-		logger.info("MergeMinding took {} seconds.", timeElapsed);
+		logger.info("MergeMinding took {} second(s).", timeElapsed);
 	}
 
 	public void mindOneProject(MinderProjectsModel minderProject) {
 		try {
 			Collection<MergeRequestAssignmentInfo> assignmentInfoList = this.gitlabIntegration.getMergeRequestInfoForProject(minderProject.getNamespace(),
 				minderProject.getProject());
-			logger.info("Minding project [{}/{}].  Total of {} MRs to check.", minderProject.getNamespace(), minderProject.getProject(), assignmentInfoList.size());
+			logger.info("Minding project [{}/{}].  Total of {} MRs to check.  Will process them in parallel.", minderProject.getNamespace(), minderProject.getProject(), assignmentInfoList.size());
 			// 			for (MergeRequestAssignmentInfo mrInfo : assignmentInfoList) {
 			AtomicInteger mrCheckCount = new AtomicInteger();
+			// Split up the MRs in the project into a parallel stream and process them at the same time.
 			assignmentInfoList.parallelStream().forEach((mrInfo) -> {
 				if (mrInfo.getMr().getWorkInProgress()) {
 					logger

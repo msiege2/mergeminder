@@ -10,8 +10,10 @@ import org.slf4j.LoggerFactory;
 import com.mcs.mergeminder.exception.SlackIntegrationException;
 import com.slack.api.Slack;
 import com.slack.api.methods.MethodsClient;
+import com.slack.api.methods.request.channels.ChannelsListRequest;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
 import com.slack.api.methods.request.conversations.ConversationsOpenRequest;
+import com.slack.api.methods.response.channels.ChannelsListResponse;
 import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import com.slack.api.methods.response.conversations.ConversationsOpenResponse;
 import com.ullink.slack.simpleslackapi.SlackChannel;
@@ -50,16 +52,16 @@ public class SlackApi {
 	 * Sends a message to a channel.  This method mixes the use of the legacy ullink SlackApi and the
 	 * Slack provided Java API.  It is temporary to avoid the use of deprecated API methods in the ullink product.
 	 *
-	 * @param channel
-	 * @param messageContent
+	 * @param channelId
+	 * @param message
 	 */
-	public ChatPostMessageResponse sendMessage(SlackChannel channel, SlackPreparedMessage messageContent) {
+	public ChatPostMessageResponse sendMessage(String channelId, SlackPreparedMessage message) {
 		try {
 			ChatPostMessageRequest request = ChatPostMessageRequest.builder()
-				.channel(channel.getId())
-				.text(messageContent.getMessage())
-				.unfurlLinks(messageContent.isUnfurl())
-				.linkNames(messageContent.isLinkNames())
+				.channel(channelId)
+				.text(message.getMessage())
+				.unfurlLinks(message.isUnfurl())
+				.linkNames(message.isLinkNames())
 				.build();
 
 			// Get a response as a Java object
@@ -84,7 +86,20 @@ public class SlackApi {
 			.withUnfurl(Boolean.FALSE)
 			.build();
 
-		return sendMessage(channel, preparedMessage);
+		return sendMessage(channel.getId(), preparedMessage);
+	}
+
+	public ChatPostMessageResponse sendMessage(String channelId, String message) {
+		SlackPreparedMessage preparedMessage = new SlackPreparedMessage.Builder()
+			.withMessage(message)
+			.withUnfurl(Boolean.FALSE)
+			.build();
+
+		return sendMessage(channelId, preparedMessage);
+	}
+
+	public ChatPostMessageResponse sendMessage(SlackChannel channel, SlackPreparedMessage message) {
+		return sendMessage(channel.getId(), message);
 	}
 
 	/**
@@ -121,6 +136,23 @@ public class SlackApi {
 			return null;
 		}
 	}
+
+	public void listChannels() {
+		try {
+			ChannelsListRequest request = ChannelsListRequest.builder().build();
+
+			// Step 3: Send the message, get the response.
+			ChannelsListResponse response = this.methods.channelsList(request);
+
+			//TODO: Handle the response -- look for a failure?
+
+			System.out.println(response.getResponseMetadata());
+		} catch (Exception e) {
+			logger.error("Could not send direct message through slack!", e);
+		}
+	}
+	// Private Methods
+	///////////////////
 
 	/**
 	 * Gets a direct channel ID between MergeMinder and the given Slack user (U#######)

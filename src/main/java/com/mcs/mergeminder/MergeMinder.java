@@ -1,10 +1,12 @@
 package com.mcs.mergeminder;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
 
@@ -65,44 +67,62 @@ public class MergeMinder {
 	@Scheduled(cron = "0 0/5 * * * *")
 	public void mindMerges() {
 		logger.info("Running MergeMinder checks.");
-		logger.info("Current Eastern Time: {}", timeSchedule.currentEasternTime());
-		if (!mergeMinderProperties.getScheduleBypass() && !timeSchedule.shouldAlertNow()) {
+		logger.info("Current Eastern Time: {}", this.timeSchedule.currentEasternTime());
+		if (!this.mergeMinderProperties.getScheduleBypass() && !this.timeSchedule.shouldAlertNow()) {
 			logger.info("Skipping checks during off hours.");
 			return;
 		}
 		doMinding();
+		logger.info("MergeMinder checks complete.");
 	}
 
 	public void doMinding() {
-		List<MinderProjectsModel> projectList = mergeMinderDb.getMinderProjects();
-		for (MinderProjectsModel minderProject : projectList) {
-			try {
-				Collection<MergeRequestAssignmentInfo> assignmentInfoList = gitlabIntegration.getMergeRequestInfoForProject(minderProject.getNamespace(),
-					minderProject.getProject());
-				for (MergeRequestAssignmentInfo mrInfo : assignmentInfoList) {
-					if (mrInfo.getMr().getWorkInProgress()) {
-						// skip WIP for now.
-						continue;
-					}
+		Instant start = Instant.now();
+
+		List<MinderProjectsModel> projectList = this.mergeMinderDb.getMinderProjects();
+		for (MinderProjectsModel project : projectList) {
+			mindOneProject(project);
+		}
+		Instant finish = Instant.now();
+		long timeElapsed = Duration.between(start, finish).toSeconds();
+		logger.info("MergeMinding took {} seconds.", timeElapsed);
+	}
+
+	public void mindOneProject(MinderProjectsModel minderProject) {
+		try {
+			Collection<MergeRequestAssignmentInfo> assignmentInfoList = this.gitlabIntegration.getMergeRequestInfoForProject(minderProject.getNamespace(),
+				minderProject.getProject());
+			logger.info("Minding project [{}/{}].  Total of {} MRs to check.", minderProject.getNamespace(), minderProject.getProject(), assignmentInfoList.size());
+			// 			for (MergeRequestAssignmentInfo mrInfo : assignmentInfoList) {
+			AtomicInteger mrCheckCount = new AtomicInteger();
+			assignmentInfoList.parallelStream().forEach((mrInfo) -> {
+				if (mrInfo.getMr().getWorkInProgress()) {
+					logger
+						.info("[{}/{}] MR!{} assigned to {} is a WIP.  Ignoring.", minderProject.getNamespace(), minderProject.getProject(),
+							mrInfo.getMr().getIid(), mrInfo.getAssignee().getUsername(),
+							mrInfo.getAssignee().getName());
+					mrCheckCount.getAndIncrement();
+				} else {
 					long hoursSinceLastAssignment = getHoursSinceAssignment(mrInfo.getAssignedAt());
 					logger
 						.info("[{}/{}] MR!{} has been assigned to {} ({}) for {} hours.", minderProject.getNamespace(), minderProject.getProject(),
 							mrInfo.getMr().getIid(), mrInfo.getAssignee().getUsername(),
 							mrInfo.getAssignee().getName(), hoursSinceLastAssignment);
 					ReminderLength reminderLength = ReminderLength.getLastReminderPeriod(hoursSinceLastAssignment);
-					long lastReminderAt = mergeMinderDb.getLastReminderSent(mrInfo.getMr().getId(), mrInfo.getLastAssignmentId());
+					long lastReminderAt = this.mergeMinderDb.getLastReminderSent(mrInfo.getMr().getId(), mrInfo.getLastAssignmentId());
 					if (lastReminderAt >= reminderLength.getHours()) {
 						logger.debug("[{}/{}] MR!{}: Already sent the most current reminder ({}).", minderProject.getNamespace(), minderProject.getProject(),
 							mrInfo.getMr().getIid(), reminderLength);
 					} else {
-						slackIntegration.notifyMergeRequest(mrInfo, reminderLength, getEmail(mrInfo.getAssignee()));
+						this.slackIntegration.notifyMergeRequest(mrInfo, reminderLength, getEmail(mrInfo.getAssignee()));
 					}
-					mergeMinderDb.recordMergeRequest(mrInfo, hoursSinceLastAssignment);
+					this.mergeMinderDb.recordMergeRequest(mrInfo, hoursSinceLastAssignment);
+					mrCheckCount.getAndIncrement();
 				}
-
-			} catch (GitLabApiException e) {
-				logger.error("Problem with GitLab integration.", e);
-			}
+			});
+			logger.info("Minding project [{}/{}] complete.  Total of {} MRs checked.", minderProject.getNamespace(), minderProject.getProject(), mrCheckCount.get());
+		} catch (GitLabApiException e) {
+			logger.error("Problem with GitLab integration.", e);
 		}
 	}
 
@@ -111,7 +131,7 @@ public class MergeMinder {
 	 */
 	@Scheduled(cron = "0 0 * * * *")
 	public void mergePurge() {
-		if (!mergeMinderProperties.getScheduleBypass() && timeSchedule.shouldPurgeNow()) {
+		if (!this.mergeMinderProperties.getScheduleBypass() && this.timeSchedule.shouldPurgeNow()) {
 			doPurge();
 		}
 	}
@@ -119,12 +139,12 @@ public class MergeMinder {
 	public void doPurge() {
 		logger.info("Running MergePurge.");
 		int purgeCount = 0;
-		List<MergeRequestModel> merges = mergeMinderDb.getAllMergeRequestModels();
+		List<MergeRequestModel> merges = this.mergeMinderDb.getAllMergeRequestModels();
 		for (MergeRequestModel merge : merges) {
 			try {
 				if (merge.getLastUpdated().toInstant().isBefore(Instant.now().minus(2, ChronoUnit.DAYS)) &&
-					gitlabIntegration.isMergeRequestMergedOrClosed(merge.getProject(), merge.getMrId())) {
-					mergeMinderDb.removeMergeRequestModel(merge);
+					this.gitlabIntegration.isMergeRequestMergedOrClosed(merge.getProject(), merge.getMrId())) {
+					this.mergeMinderDb.removeMergeRequestModel(merge);
 					purgeCount++;
 				}
 			} catch (GitlabIntegrationException e) {
@@ -168,9 +188,9 @@ public class MergeMinder {
 		if (user == null) {
 			return null;
 		}
-		if (!CollectionUtils.isEmpty(mergeMinderProperties.getEmailDomains())) {
+		if (!CollectionUtils.isEmpty(this.mergeMinderProperties.getEmailDomains())) {
 			// email domains should be comma separated
-			for (String emailDomain : mergeMinderProperties.getEmailDomains()) {
+			for (String emailDomain : this.mergeMinderProperties.getEmailDomains()) {
 				if (user.getEmail() != null && user.getEmail().endsWith(emailDomain)) {
 					return user.getEmail();
 				}

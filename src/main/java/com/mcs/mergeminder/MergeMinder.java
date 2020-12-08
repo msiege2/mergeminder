@@ -93,6 +93,10 @@ public class MergeMinder {
 		try {
 			Collection<MergeRequestAssignmentInfo> assignmentInfoList = this.gitlabIntegration.getMergeRequestInfoForProject(minderProject.getNamespace(),
 				minderProject.getProject());
+			if (assignmentInfoList.isEmpty()) {
+				logger.info("Minding project [{}/{}].  No open MRs to check.");
+				return;
+			}
 			logger.info("Minding project [{}/{}].  Total of {} MRs to check.  Will process them in parallel.", minderProject.getNamespace(), minderProject.getProject(), assignmentInfoList.size());
 			// 			for (MergeRequestAssignmentInfo mrInfo : assignmentInfoList) {
 			AtomicInteger mrCheckCount = new AtomicInteger();

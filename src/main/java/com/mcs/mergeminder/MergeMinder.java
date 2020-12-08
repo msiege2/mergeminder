@@ -94,7 +94,7 @@ public class MergeMinder {
 			Collection<MergeRequestAssignmentInfo> assignmentInfoList = this.gitlabIntegration.getMergeRequestInfoForProject(minderProject.getNamespace(),
 				minderProject.getProject());
 			if (assignmentInfoList.isEmpty()) {
-				logger.info("Minding project [{}/{}].  No open MRs to check.");
+				logger.info("Minding project [{}/{}].  No open MRs to check.", minderProject.getNamespace(), minderProject.getProject());
 				return;
 			}
 			logger.info("Minding project [{}/{}].  Total of {} MRs to check.  Will process them in parallel.", minderProject.getNamespace(), minderProject.getProject(), assignmentInfoList.size());
@@ -104,20 +104,20 @@ public class MergeMinder {
 			assignmentInfoList.parallelStream().forEach((mrInfo) -> {
 				if (mrInfo.getMr().getWorkInProgress()) {
 					logger
-						.info("[{}/{}] MR!{} assigned to {} is a WIP.  Ignoring.", minderProject.getNamespace(), minderProject.getProject(),
+						.info("   [{}/{}] MR!{} assigned to {} is a WIP.  Ignoring.", minderProject.getNamespace(), minderProject.getProject(),
 							mrInfo.getMr().getIid(), mrInfo.getAssignee().getUsername(),
 							mrInfo.getAssignee().getName());
 					mrCheckCount.getAndIncrement();
 				} else {
 					long hoursSinceLastAssignment = getHoursSinceAssignment(mrInfo.getAssignedAt());
 					logger
-						.info("[{}/{}] MR!{} has been assigned to {} ({}) for {} hours.", minderProject.getNamespace(), minderProject.getProject(),
+						.info("   [{}/{}] MR!{} has been assigned to {} ({}) for {} hours.", minderProject.getNamespace(), minderProject.getProject(),
 							mrInfo.getMr().getIid(), mrInfo.getAssignee().getUsername(),
 							mrInfo.getAssignee().getName(), hoursSinceLastAssignment);
 					ReminderLength reminderLength = ReminderLength.getLastReminderPeriod(hoursSinceLastAssignment);
 					long lastReminderAt = this.mergeMinderDb.getLastReminderSent(mrInfo.getMr().getId(), mrInfo.getLastAssignmentId());
 					if (lastReminderAt >= reminderLength.getHours()) {
-						logger.debug("[{}/{}] MR!{}: Already sent the most current reminder ({}).", minderProject.getNamespace(), minderProject.getProject(),
+						logger.debug("   [{}/{}] MR!{}: Already sent the most current reminder ({}).", minderProject.getNamespace(), minderProject.getProject(),
 							mrInfo.getMr().getIid(), reminderLength);
 					} else {
 						this.slackIntegration.notifyMergeRequest(mrInfo, reminderLength, getEmail(mrInfo.getAssignee()));

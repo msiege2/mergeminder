@@ -1,5 +1,5 @@
 # MergeMinder
-[![Build Status](https://travis-ci.com/msiege2/mergeminder.svg?branch=master)](https://travis-ci.com/msiege2)
+![Build Status](https://travis-ci.com/msiege2/mergeminder.svg?branch=master)
 ![Dev Version](https://pom-version-badge.glitch.me/msiege2/mergeminder)
 [![HitCount](http://hits.dwyl.io/msiege2/mergeminder.svg)](http://hits.dwyl.io/msiege2/mergeminder)
 

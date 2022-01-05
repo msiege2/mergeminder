@@ -11,6 +11,7 @@ import org.gitlab4j.api.models.MergeRequest;
 import org.gitlab4j.api.models.Note;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.User;
+import org.gitlab4j.api.models.Assignee;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
@@ -73,12 +74,15 @@ public class GitlabIntegration {
 			// Assignment events are in "notes"
 			List<Note> notes = gitLabApi.getNotesApi().getMergeRequestNotes(project.getId(), mr.getIid(), Constants.SortOrder.DESC, Note.OrderBy.CREATED_AT);
 			Note lastAssignment = getLastAssignment(notes);
-			if (mr.getAssignee() == null) {
+			if (mr.getAssignees() == null || CollectionUtils.isEmpty(mr.getAssignees())) {
 				log.info("[{}/{}] MR!{} is not assigned.  Nothing to mind.", namespace, projectName, mrId);
 			} else {
-				User assignee = gitLabApi.getUserApi().getUser(mr.getAssignee().getUsername());
 				User author = gitLabApi.getUserApi().getUser(mr.getAuthor().getUsername());
-				assignmentInfoList.add(new MergeRequestAssignmentInfo(mr, assignee, author, lastAssignment, namespace, projectName));
+				// GitLab allows multiple assignees to a MR, allow for notifying each one.
+				for(Assignee user : mr.getAssignees() ) {
+					User assignee = gitLabApi.getUserApi().getUser(user.getUsername());
+					assignmentInfoList.add(new MergeRequestAssignmentInfo(mr, assignee, author, lastAssignment, namespace, projectName));
+				}
 			}
 		}
 

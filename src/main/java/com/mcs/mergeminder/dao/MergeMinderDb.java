@@ -41,7 +41,7 @@ public class MergeMinderDb {
 		return StreamSupport.stream(mergeRequestRepository.findAll().spliterator(), false).collect(Collectors.toList());
 	}
 
-	public MergeRequestModel getMergeRequestModel(int id) {
+	public MergeRequestModel getMergeRequestModel(long id) {
 		return mergeRequestRepository.findById(id).orElse(null);
 	}
 
@@ -54,7 +54,7 @@ public class MergeMinderDb {
 	 * @param lastAssignmentId
 	 * @return
 	 */
-	public long getLastReminderSent(int mrId, int lastAssignmentId) {
+	public long getLastReminderSent(long mrId, long lastAssignmentId) {
 		MergeRequestModel mrModel = mergeRequestRepository.findById(mrId).orElse(null);
 		if (mrModel != null && lastAssignmentId != mrModel.getLastAssignmentId()) {
 			// this has been reassigned since we last saw it.  clear the last reminder sent time.

@@ -3,6 +3,7 @@ package com.mcs.mergeminder.gitlab;
 import com.mcs.mergeminder.dto.MergeRequestAssignmentInfo;
 import com.mcs.mergeminder.exception.GitlabIntegrationException;
 import com.mcs.mergeminder.properties.GitlabProperties;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.gitlab4j.api.Constants;
 import org.gitlab4j.api.GitLabApi;
@@ -17,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -65,7 +65,7 @@ public class GitlabIntegration {
 		// Populate the AssignmentInfo object for each MR
 		for (MergeRequest mr : mergeRequests) {
 			String title = mr.getTitle();
-			Integer mrId = mr.getIid();
+			Long mrId = mr.getIid();
 			if (ignoreMergeRequest(mr)) {
 				log.debug("MR!{}: {} ignored because it contains label that's ignored ( mm.gitlab.ignoredByLabels )", mrId, title);
 				continue;
@@ -89,7 +89,7 @@ public class GitlabIntegration {
 		return assignmentInfoList;
 	}
 
-	public boolean isMergeRequestMergedOrClosed(String fullyQualifiedProjectName, Integer mrId) throws GitlabIntegrationException {
+	public boolean isMergeRequestMergedOrClosed(String fullyQualifiedProjectName, Long mrId) throws GitlabIntegrationException {
 		if (fullyQualifiedProjectName == null || mrId == null) {
 			return false;
 		}

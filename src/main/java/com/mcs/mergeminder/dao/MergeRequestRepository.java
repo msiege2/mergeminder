@@ -4,9 +4,9 @@ import org.springframework.data.repository.CrudRepository;
 
 import com.mcs.mergeminder.dto.MergeRequestModel;
 
-public interface MergeRequestRepository extends CrudRepository<MergeRequestModel, Integer> {
+public interface MergeRequestRepository extends CrudRepository<MergeRequestModel, Long> {
 	// This will be AUTO IMPLEMENTED by Spring into a Bean called MergeRequestRepository
 	// CRUD refers Create, Read, Update, Delete
 
-	MergeRequestModel findFirstByProjectAndMrId(String project, Integer mrId);
+	MergeRequestModel findFirstByProjectAndMrId(String project, Long mrId);
 }

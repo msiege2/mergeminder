@@ -17,9 +17,9 @@ public interface SlackMessageSender {
 	 * @param slackApi
 	 */
 	default void simulateHumanStyleMessageSending(SlackChannel channel, String message, SlackSession session, SlackApi slackApi) {
-		SlackPreparedMessage slackPreparedMessage = new SlackPreparedMessage.Builder()
-			.withMessage(message)
-			.withUnfurl(false)
+		SlackPreparedMessage slackPreparedMessage = SlackPreparedMessage.builder()
+			.message(message)
+			.unfurl(false)
 			.build();
 		simulateHumanStyleMessageSending(channel, slackPreparedMessage, session, slackApi);
 	}

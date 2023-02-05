@@ -40,7 +40,7 @@ public class MergeRequestAssignmentInfo {
 		return lastAssignmentNote == null ? getMr().getCreatedAt() : lastAssignmentNote.getCreatedAt();
 	}
 
-	public Integer getLastAssignmentId() {
+	public Long getLastAssignmentId() {
 		return lastAssignmentNote == null ? -1 : lastAssignmentNote.getId();
 	}
 

@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.gitlab4j.api.models.MergeRequest;
 import org.gitlab4j.api.models.User;
@@ -176,9 +176,9 @@ public class SlackIntegration {
 			}
 			logger.debug("Notification message: {}", messageForUser);
 			if (messageForUser != null) {
-				SlackPreparedMessage slackPreparedMessage = new SlackPreparedMessage.Builder()
-					.withMessage(messageForUser)
-					.withUnfurl(false)
+				SlackPreparedMessage slackPreparedMessage = SlackPreparedMessage.builder()
+					.message(messageForUser)
+					.unfurl(false)
 					.build();
 				this.slackApi.sendMessageToUser(user, slackPreparedMessage);
 			}
@@ -234,9 +234,9 @@ public class SlackIntegration {
 			.append(MergeMinder.getHoursSinceAssignment(mrInfo.getAssignedAt()))
 			.append(" hours.");
 
-		SlackPreparedMessage preparedMessage = new SlackPreparedMessage.Builder()
-			.withMessage(sb.toString())
-			.withUnfurl(false)
+		SlackPreparedMessage preparedMessage = SlackPreparedMessage.builder()
+			.message(sb.toString())
+			.unfurl(false)
 			.build();
 		SlackChannel channel = this.slackSession.findChannelByName(this.slackProperties.getNotificationChannel());
 		if (channel != null) {

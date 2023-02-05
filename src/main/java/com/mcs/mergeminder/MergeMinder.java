@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.User;

@@ -81,18 +81,18 @@ public class SlackApi {
 	 * @return
 	 */
 	public ChatPostMessageResponse sendMessage(SlackChannel channel, String message) {
-		SlackPreparedMessage preparedMessage = new SlackPreparedMessage.Builder()
-			.withMessage(message)
-			.withUnfurl(Boolean.FALSE)
+		SlackPreparedMessage preparedMessage = SlackPreparedMessage.builder()
+			.message(message)
+			.unfurl(Boolean.FALSE)
 			.build();
 
 		return sendMessage(channel.getId(), preparedMessage);
 	}
 
 	public ChatPostMessageResponse sendMessage(String channelId, String message) {
-		SlackPreparedMessage preparedMessage = new SlackPreparedMessage.Builder()
-			.withMessage(message)
-			.withUnfurl(Boolean.FALSE)
+		SlackPreparedMessage preparedMessage = SlackPreparedMessage.builder()
+			.message(message)
+			.unfurl(Boolean.FALSE)
 			.build();
 
 		return sendMessage(channelId, preparedMessage);

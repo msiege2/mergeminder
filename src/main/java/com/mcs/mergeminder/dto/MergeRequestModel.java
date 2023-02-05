@@ -2,10 +2,10 @@ package com.mcs.mergeminder.dto;
 
 import java.util.Date;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -16,13 +16,13 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 public class MergeRequestModel {
 
 	@Id
-	private Integer id;
+	private Long id;
 	private String project;
-	private Integer mrId;
+	private Long mrId;
 	private String assignee;
 	private String assigneeEmail;
 	private Long lastReminderSentAt;
-	private Integer lastAssignmentId;
+	private Long lastAssignmentId;
 	private Date assignedAt;
 	private Date lastUpdated;
 
@@ -43,11 +43,11 @@ public class MergeRequestModel {
 		}
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -63,11 +63,11 @@ public class MergeRequestModel {
 		this.project = project;
 	}
 
-	public Integer getMrId() {
+	public Long getMrId() {
 		return mrId;
 	}
 
-	public void setMrId(Integer mrId) {
+	public void setMrId(Long mrId) {
 		this.mrId = mrId;
 	}
 
@@ -95,11 +95,11 @@ public class MergeRequestModel {
 		this.lastReminderSentAt = lastReminderSentAt;
 	}
 
-	public Integer getLastAssignmentId() {
+	public Long getLastAssignmentId() {
 		return lastAssignmentId;
 	}
 
-	public void setLastAssignmentId(Integer lastAssignmentId) {
+	public void setLastAssignmentId(Long lastAssignmentId) {
 		this.lastAssignmentId = lastAssignmentId;
 	}
 

@@ -1,9 +1,7 @@
-name: Java CI with Maven
+name: Merge To Main
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
     branches: [ "main" ]
 
 jobs:

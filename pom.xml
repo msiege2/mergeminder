@@ -25,6 +25,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <dockerfile.maven.version>1.4.12</dockerfile.maven.version>
         <springdoc.version>1.7.0</springdoc.version>
+        <snakeyaml.version>2.0</snakeyaml.version>
     </properties>
     <dependencies>
         <dependency>

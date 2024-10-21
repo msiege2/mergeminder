@@ -26,7 +26,7 @@
 
         <!-- Dependency versions -->
         <springdoc.version>2.6.0</springdoc.version>
-        <gitlab4j-api.version>5.5.0</gitlab4j-api.version>
+        <gitlab4j-api.version>5.7.0</gitlab4j-api.version>
         <slack-api-client.version>1.44.0</slack-api-client.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <spock.version>2.3-groovy-4.0</spock.version>

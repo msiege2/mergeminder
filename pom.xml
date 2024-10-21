@@ -30,7 +30,7 @@
         <slack-api-client.version>1.44.0</slack-api-client.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <spock.version>2.3-groovy-4.0</spock.version>
-        <groovy.version>4.0.15</groovy.version>
+        <groovy.version>4.0.23</groovy.version>
     </properties>
 
     <dependencies>
